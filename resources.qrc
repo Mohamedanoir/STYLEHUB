@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/logo.png</file>
+        <file>images/sidebar_bas.png</file>
+        <file>images/sidebar.png</file>
+        <file>images/banniere.png</file>
+        <file>images/chevron.png</file>
+        <file>images/robe_avant.png</file>
+        <file>images/robe_validee.gif</file>
+        <file>images/veste_avant.png</file>
+        <file>images/veste_validee.gif</file>
+        <file>images/jupe_avant.png</file>
+        <file>images/jupe_validee.gif</file>
+    </qresource>
+</RCC>

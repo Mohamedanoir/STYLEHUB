@@ -1,0 +1,47 @@
+FashioNova — Module « Gestion des Maquettes »  (C++ / Qt 6)
+==========================================================
+
+OUVRIR LE PROJET
+(Ou en une commande PowerShell : powershell -ExecutionPolicy Bypass -File .\compiler.ps1)
+1. Dézipper le dossier FashioNova (par ex. dans C:\Projets\FashioNova).
+2. Qt Creator -> Fichier -> Ouvrir un fichier ou projet -> choisir CMakeLists.txt
+   (ou FashioNova.pro si vous utilisez qmake).
+3. Choisir le kit "Desktop Qt 6.x MinGW 64-bit" -> Configure Project.
+4. Build -> Run (bouton vert ▶).
+
+La base de données SQLite (maquettes_fashionova.db) est créée automatiquement à côté de
+l'exécutable, avec 25 maquettes de démonstration. Rien à installer.
+
+IMAGES (dossier images/)
+- robe_avant.png   / robe_validee.gif
+- veste_avant.png  / veste_validee.gif
+- jupe_avant.png   / jupe_validee.gif
+- logo.png, banniere.png : logo FashioNova et bannière du haut
+Règle : Statut "En cours" ou "En attente" -> image fixe (toile)
+        Statut "Validée"                  -> GIF animé
+Pour changer une image : remplacer le fichier en gardant EXACTEMENT le même nom,
+puis Build -> Rebuild.
+
+FICHIERS
+- main.cpp          : lancement + connexion BD
+- connexion.h/.cpp  : création de la base et de la table MAQUETTES
+- maquette.h/.cpp   : classe Maquette (CRUD, recherche, tri, stats, retards, vidéo)
+- statwidgets.h/.cpp: graphiques (donut, courbe, Top 5)
+- icones.h/.cpp     : toutes les icônes (dessinées en code)
+- widgets.h/.cpp    : bannière, zone d'aperçu (image/GIF), miniatures
+- mainwindow.ui     : l'interface (s'ouvre dans Qt Designer : double-clic dans Qt Creator)
+- mainwindow.h/.cpp : le code de l'interface (icônes, connexions, CRUD, métiers)
+- resources.qrc     : liste des images intégrées
+
+FONCTIONNALITÉS
+- Types : Robe, Veste, Jupe uniquement
+- Ajouter / Modifier / Supprimer / Afficher (avec contrôle de saisie)
+- Rechercher : ID, Nom, Type      - Trier : Date de création, Type, Statut
+- Exporter PDF de la liste
+- Statistiques : par type, évolution (cumul sur 6 mois), Top 5 des maquettes les plus consultées
+  (chaque clic sur « Afficher » ajoute 1 consultation)
+- Pagination : 5 maquettes par page
+- Cases à cocher : supprimer plusieurs maquettes d'un coup
+- Métier 1 : vidéo de présentation (bouton + sous l'image pour ajouter, ▶ pour lire, crayon pour changer)
+- Métier 2 : alerte automatique des maquettes non validées depuis plus de 7 jours
+  (chiffre sur la cloche + lignes en rouge + pop-up au démarrage, vérification chaque minute)
