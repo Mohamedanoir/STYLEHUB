@@ -1,4 +1,4 @@
-QT += widgets webenginewidgets webchannel
+QT += widgets webenginewidgets webchannel network printsupport
 CONFIG += c++17
 TEMPLATE = app
 TARGET = FashionovaOrders

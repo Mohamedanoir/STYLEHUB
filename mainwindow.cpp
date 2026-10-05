@@ -22,6 +22,8 @@
 #include <QDialog>
 #include <QApplication>
 #include <QDateTime>
+#include <QNetworkRequest>
+#include <QScrollBar>
 
 static const QString NAVY = "#082849";
 static const QString BLUE = "#1B5FA7";
@@ -66,7 +68,6 @@ static QPixmap generateQrCodePixmap(const QString &text, int size = 110)
     const int modules = 21; // Grille standard de QR code (Version 1)
     const double step = double(size) / modules;
 
-    // Déterministe : pseudo-matrice basée sur le hash du texte
     quint32 hash = qHash(text);
     p.setPen(Qt::NoPen);
     p.setBrush(QColor("#082849"));
@@ -79,15 +80,12 @@ static QPixmap generateQrCodePixmap(const QString &text, int size = 110)
         p.drawRect(QRectF((startX + 2) * step, (startY + 2) * step, 3 * step, 3 * step));
     };
 
-    // 3 Motifs de localisation (coins)
     drawFinder(0, 0);
     drawFinder(modules - 7, 0);
     drawFinder(0, modules - 7);
 
-    // Remplissage intérieur
     for (int y = 0; y < modules; ++y) {
         for (int x = 0; x < modules; ++x) {
-            // Éviter les coins finder
             if ((x < 7 && y < 7) || (x >= modules - 7 && y < 7) || (x < 7 && y >= modules - 7))
                 continue;
 
@@ -285,7 +283,7 @@ static QIcon makeButtonIcon(ActionIconType type, const QColor &color, int size =
 }
 
 // ---------------------------------------------------------------------------
-// Icônes vectorielles et courbes dégradées pour les KPIs
+// KPIs
 // ---------------------------------------------------------------------------
 static QPixmap makeKpiIcon(int type, const QColor &color)
 {
@@ -449,6 +447,11 @@ MainWindow::MainWindow(QWidget *parent)
     resize(1440, 880);
     setMinimumSize(1100, 680);
     setWindowTitle("FASHIONOVA — Gestion des Commandes");
+
+    // Initialisation Réseau et Agent IA
+    networkManager = new QNetworkAccessManager(this);
+    connect(networkManager, &QNetworkAccessManager::finished, this, &MainWindow::onAiResponseReceived);
+    initAIAgent();
 
     setStyleSheet(QString(R"(
         QWidget { font-family: "Segoe UI", sans-serif; color: #1E293B; font-size: 11px; }
@@ -780,7 +783,6 @@ QWidget* MainWindow::makeOrdersPanel()
     title->addWidget(new QLabel("<b style='font-size:12px; color:#0F172A;'>📋  Liste des commandes</b>"));
     title->addStretch();
 
-    // Bouton Scanner Express d'Atelier
     auto *btnScanModal = new QPushButton("  Scanner Express");
     btnScanModal->setIcon(makeButtonIcon(IconScan, QColor("#FFFFFF")));
     btnScanModal->setIconSize(QSize(15, 15));
@@ -835,7 +837,6 @@ QWidget* MainWindow::makeOrdersPanel()
     connect(ordersTable, &QTableWidget::cellClicked, this, &MainWindow::selectOrder);
     v->addWidget(ordersTable);
 
-    // Pagination
     auto *pageBar = new QHBoxLayout;
     auto *lblPage = new QLabel("1 à 6 sur 124 commandes");
     lblPage->setStyleSheet("color:#64748B; font-size:9.5px;");
@@ -852,7 +853,6 @@ QWidget* MainWindow::makeOrdersPanel()
     }
     v->addLayout(pageBar);
 
-    // Boutons d'action
     auto *buttons = new QHBoxLayout;
     auto *btnAdd = new QPushButton("＋  Ajouter");
     btnAdd->setFixedHeight(26);
@@ -946,7 +946,6 @@ QWidget* MainWindow::makeDetailsPanel()
         v->addWidget(x);
     }
 
-    // Rangée de boutons : Voir détails + Facture PDF
     auto *actionBtnsLayout = new QHBoxLayout;
     actionBtnsLayout->setSpacing(6);
 
@@ -969,7 +968,6 @@ QWidget* MainWindow::makeDetailsPanel()
 
     v->addLayout(actionBtnsLayout);
 
-    // Estimation
     auto *est = new QFrame;
     est->setStyleSheet("QFrame{background:#FFFDF7; border:1px solid #F3E4C8; border-radius:6px;}");
     auto *eg = new QGridLayout(est);
@@ -999,7 +997,6 @@ QWidget* MainWindow::makeDetailsPanel()
     eg->addWidget(route, 4, 0, 1, 2);
     v->addWidget(est);
 
-    // Suivi de commande
     auto *follow = new QFrame;
     follow->setStyleSheet("QFrame{background:#FFFFFF; border:1px solid #E2E8F0; border-radius:6px;}");
     auto *fg = new QVBoxLayout(follow);
@@ -1041,7 +1038,7 @@ QWidget* MainWindow::makeDetailsPanel()
 }
 
 // ---------------------------------------------------------------------------
-// INNOVATION 1 : GÉNÉRATEUR DE FACTURE & BON DE LIVRAISON PDF AVEC QR CODE
+// FACTURE & BON DE LIVRAISON PDF AVEC QR CODE
 // ---------------------------------------------------------------------------
 void MainWindow::generateInvoicePdf()
 {
@@ -1059,13 +1056,11 @@ void MainWindow::generateInvoicePdf()
     QString fileName = QFileDialog::getSaveFileName(this, "Enregistrer la Facture PDF", defaultName, "Documents PDF (*.pdf)");
     if (fileName.isEmpty()) return;
 
-    // 1. Sauvegarde temporaire du QR Code de suivi
     QString qrPath = QDir::tempPath() + QString("/qr_%1.png").arg(id);
     QString trackingData = QString("https://fashionova.luxury/track?order=%1&client=%2").arg(id, client);
     QPixmap qrPix = generateQrCodePixmap(trackingData, 140);
     qrPix.save(qrPath, "PNG");
 
-    // 2. Génération du modèle HTML de haute couture
     QString html = QString(R"(
         <!DOCTYPE html>
         <html>
@@ -1170,7 +1165,6 @@ void MainWindow::generateInvoicePdf()
                        .arg(QString::number(amount.split(" ").first().replace(",", ".").toDouble() - (amount.split(" ").first().replace(",", ".").toDouble() / 1.19), 'f', 2))
                        .arg(qrPath);
 
-    // 3. Impression PDF haute résolution
     QPrinter printer(QPrinter::HighResolution);
     printer.setOutputFormat(QPrinter::PdfFormat);
     printer.setOutputFileName(fileName);
@@ -1186,7 +1180,7 @@ void MainWindow::generateInvoicePdf()
 }
 
 // ---------------------------------------------------------------------------
-// INNOVATION 3 : SCANNER / TERMINAL EXPRESS DE PRÉPARATION D'EXPÉDITION
+// SCANNER / TERMINAL EXPRESS DE PRÉPARATION D'EXPÉDITION
 // ---------------------------------------------------------------------------
 void MainWindow::openBarcodeScannerModal()
 {
@@ -1203,7 +1197,6 @@ void MainWindow::openBarcodeScannerModal()
     headLbl->setWordWrap(true);
     vl->addWidget(headLbl);
 
-    // Simulation de visée laser
     auto *laserBox = new QFrame;
     laserBox->setFixedHeight(90);
     laserBox->setStyleSheet("background: #08213B; border-radius: 8px; border: 2px solid #D8A64B;");
@@ -1237,10 +1230,8 @@ void MainWindow::openBarcodeScannerModal()
         for (int r = 0; r < ordersTable->rowCount(); ++r) {
             if (ordersTable->item(r, 1) && ordersTable->item(r, 1)->text().toUpper() == code) {
                 found = true;
-                // Bip sonore système confirmant le scan
                 QApplication::beep();
 
-                // Bascule le statut en "Expédiée"
                 auto *badgeWidget = ordersTable->cellWidget(r, 5);
                 if (badgeWidget) {
                     auto *badge = badgeWidget->findChild<QLabel*>();
@@ -1326,7 +1317,6 @@ QWidget* MainWindow::makeBottomPanel()
     g->setContentsMargins(0, 0, 0, 0);
     g->setSpacing(6);
 
-    // 1. Donut
     auto *donut = new QFrame;
     donut->setStyleSheet(cardStyle());
     auto *dv = new QVBoxLayout(donut);
@@ -1385,7 +1375,6 @@ QWidget* MainWindow::makeBottomPanel()
     donutContent->addLayout(legend, 1);
     dv->addLayout(donutContent);
 
-    // 2. Top 5 Produits
     auto *products = new QFrame;
     products->setStyleSheet(cardStyle());
     auto *pv = new QVBoxLayout(products);
@@ -1426,7 +1415,6 @@ QWidget* MainWindow::makeBottomPanel()
         pv->addLayout(row);
     }
 
-    // 3. Alertes
     auto *alerts = new QFrame;
     alerts->setStyleSheet(cardStyle());
     auto *av = new QVBoxLayout(alerts);
@@ -1466,7 +1454,7 @@ QWidget* MainWindow::makeBottomPanel()
 }
 
 // ---------------------------------------------------------------------------
-// Chatbot IA
+// Chatbot IA Flottant
 // ---------------------------------------------------------------------------
 void MainWindow::setupFloatingChatbot()
 {
@@ -1532,7 +1520,7 @@ void MainWindow::setupFloatingChatbot()
     auto *headLayout = new QHBoxLayout(header);
     headLayout->setContentsMargins(12, 0, 12, 0);
 
-    auto *titleLbl = new QLabel("<b style='color:#FFFFFF; font-size:12px;'>🤖 Assistant Commandes</b><br><span style='color:#94A3B8; font-size:9.5px;'>Fashionova IA</span>");
+    auto *titleLbl = new QLabel("<b style='color:#FFFFFF; font-size:12px;'>🤖 StyleBot IA</b><br><span style='color:#94A3B8; font-size:9.5px;'>Fashionova Copilot (Llama 3.1)</span>");
     auto *closeBtn = new QPushButton("✕");
     closeBtn->setFixedSize(24, 24);
     closeBtn->setCursor(Qt::PointingHandCursor);
@@ -1567,7 +1555,7 @@ void MainWindow::setupFloatingChatbot()
     inLayout->setSpacing(6);
 
     chatInput = new QLineEdit;
-    chatInput->setPlaceholderText("Posez une question ou donnez un ordre...");
+    chatInput->setPlaceholderText("Posez une question à l'IA ou ordonnez une action...");
     chatInput->setStyleSheet("QLineEdit { background:#F1F5F9; border:1px solid #CBD5E1; border-radius:16px; padding:0 12px; font-size:11px; }");
     connect(chatInput, &QLineEdit::returnPressed, this, &MainWindow::handleSendChatMessage);
 
@@ -1581,7 +1569,7 @@ void MainWindow::setupFloatingChatbot()
     inLayout->addWidget(sendBtn);
     winLayout->addWidget(inputFrame);
 
-    addChatMessage("Bot", "Bonjour Mohamed Anoir ! Je peux contrôler l'application, modifier les statuts, générer des factures PDF, ouvrir le scanner d'expédition et tracer les itinéraires.", false);
+    addChatMessage("Bot", "Bonjour Mohamed Anoir ! Je suis votre copilote IA StyleHub. Je peux répondre à vos questions, contrôler vos commandes, tracer les itinéraires ou estimer vos coûts.", false);
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event)
@@ -1639,6 +1627,9 @@ void MainWindow::addChatMessage(const QString &sender, const QString &text, bool
     chatMessagesLayout->insertWidget(idx, msgFrame);
 }
 
+// ---------------------------------------------------------------------------
+// ENVOI DU MESSAGE (Hybride : Actions directes GUI OU Requête IA Groq Llama 3.1)
+// ---------------------------------------------------------------------------
 void MainWindow::handleSendChatMessage()
 {
     QString q = chatInput->text().trimmed();
@@ -1647,31 +1638,80 @@ void MainWindow::handleSendChatMessage()
     addChatMessage("Vous", q, true);
     chatInput->clear();
 
-    QString response = processChatbotQuery(q);
-    addChatMessage("Bot", response, false);
+    // 1. Exécute l'action locale si possible
+    QString directResponse = processChatbotQuery(q);
+    if (!directResponse.isEmpty()) {
+        addChatMessage("Bot", directResponse, false);
+        return;
+    }
+
+    // 2. Sinon, interroge l'IA en lui fournissant la liste des commandes existantes
+    addChatMessage("Bot", "⏳ <i>StyleBot réfléchit...</i>", false);
+
+    // Synthèse dynamique des données actuelles pour le modèle
+    QString ordersContext = "Voici la liste des commandes actuellement enregistrées dans l'atelier :\n";
+    for (int r = 0; r < ordersTable->rowCount(); ++r) {
+        ordersContext += QString("- %1 | Client: %2 (%3) | Date: %4 | Statut: %5 | Montant: %6\n")
+        .arg(ordersTable->item(r, 1)->text(),
+             ordersTable->item(r, 3)->text(),
+             ordersTable->item(r, 2)->text(),
+             ordersTable->item(r, 4)->text(),
+             ordersTable->cellWidget(r, 5)->findChild<QLabel*>()->text(),
+             ordersTable->item(r, 6)->text());
+    }
+
+    QJsonObject userMsg;
+    userMsg["role"] = "user";
+    userMsg["content"] = QString("%1\n\nQuestion de l'utilisateur : %2").arg(ordersContext, q);
+    conversationHistory.append(userMsg);
+
+    QUrl apiUrl("https://api.groq.com/openai/v1/chat/completions");
+    QNetworkRequest request(apiUrl);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    QString authHeader = "Bearer " + GROQ_API_KEY.trimmed();
+    request.setRawHeader("Authorization", authHeader.toUtf8());
+
+    QSslConfiguration sslConfig = QSslConfiguration::defaultConfiguration();
+    sslConfig.setProtocol(QSsl::TlsV1_2OrLater);
+    sslConfig.setPeerVerifyMode(QSslSocket::VerifyNone);
+    request.setSslConfiguration(sslConfig);
+
+    QJsonObject payload;
+    payload["model"] = "openai/gpt-oss-20b";
+    payload["messages"] = conversationHistory;
+    payload["temperature"] = 0.7;
+    payload["max_tokens"] = 800;
+
+    QNetworkReply *reply = networkManager->post(request, QJsonDocument(payload).toJson());
+
+    connect(reply, &QNetworkReply::sslErrors, reply, [reply](const QList<QSslError> &errors) {
+        Q_UNUSED(errors);
+        reply->ignoreSslErrors();
+    });
 }
 
 // ---------------------------------------------------------------------------
-// Traitement intelligent des requêtes Chatbot
+// Traitement intelligent des requêtes Chatbot locales
 // ---------------------------------------------------------------------------
 QString MainWindow::processChatbotQuery(const QString &query)
 {
     const QString raw = query.trimmed();
     const QString q = raw.toLower();
 
-    // Commande directe : Facture PDF
+    // 1. Commande directe : Facture PDF
     if (q.contains("facture") || q.contains("pdf")) {
         generateInvoicePdf();
         return "📄 <b>Génération PDF :</b> La boîte d'enregistrement de facture officielle s'est ouverte pour la commande sélectionnée.";
     }
 
-    // Commande directe : Scanner Express
+    // 2. Commande directe : Scanner Express
     if (q.contains("scan") || q.contains("douchette") || q.contains("colis")) {
         openBarcodeScannerModal();
         return "📦 <b>Terminal Express :</b> Le scanner d'expédition est ouvert et prêt pour la lecture de colis.";
     }
 
-    // Navigation automatique
+    // 3. Navigation automatique vers les onglets
     const QStringList modules = {"client", "employé", "commande", "maquette", "machine", "article"};
     for (int i = 0; i < modules.size(); ++i) {
         if ((q.contains("va sur") || q.contains("ouvre") || q.contains("page") || q.contains("module")) && q.contains(modules[i])) {
@@ -1682,15 +1722,16 @@ QString MainWindow::processChatbotQuery(const QString &query)
         }
     }
 
-    // Modification CRUD en direct
-    QRegularExpression updateStatusRx(R"((?:change|passe|met|marque)\s+(cmd-\d+)\s+(?:en|comme|a)\s+([a-zA-Z\s]+))");
+    // 4. Modification de statut en direct (ex: "change CMD-003 en Livrée")
+    QRegularExpression updateStatusRx(R"((?:change|passe|met|marque)\s+(?:la\s+commande\s+)?(?:cmd-)?(\d+)\s+(?:en|comme|a)\s+([a-zA-Z\s]+))", QRegularExpression::CaseInsensitiveOption);
     QRegularExpressionMatch stMatch = updateStatusRx.match(q);
     if (stMatch.hasMatch()) {
-        QString targetId = stMatch.captured(1).toUpper();
+        int num = stMatch.captured(1).toInt();
+        QString targetId = QString("CMD-%1").arg(num, 3, 10, QChar('0'));
         QString newStatus = stMatch.captured(2).trimmed();
 
         for (int r = 0; r < ordersTable->rowCount(); ++r) {
-            if (ordersTable->item(r, 1) && ordersTable->item(r, 1)->text().toUpper() == targetId) {
+            if (ordersTable->item(r, 1) && ordersTable->item(r, 1)->text().compare(targetId, Qt::CaseInsensitive) == 0) {
                 auto *badgeWidget = ordersTable->cellWidget(r, 5);
                 if (badgeWidget) {
                     auto *badge = badgeWidget->findChild<QLabel*>();
@@ -1707,15 +1748,14 @@ QString MainWindow::processChatbotQuery(const QString &query)
                         }
                         ordersTable->selectRow(r);
                         updateDetails(r);
-                        return QString("⚡ <b>Statut mis à jour :</b> La commande <b>%1</b> est désormais <b>%2</b>.")
-                            .arg(targetId, badge->text());
+                        return QString("⚡ <b>Statut mis à jour :</b> La commande <b>%1</b> est désormais <b>%2</b>.").arg(targetId, badge->text());
                     }
                 }
             }
         }
     }
 
-    // Calculs arithmétiques arbitraires
+    // 5. Calculs mathématiques
     bool isMath = false;
     double mathRes = evaluateMathExpression(raw, isMath);
     if (isMath) {
@@ -1723,76 +1763,74 @@ QString MainWindow::processChatbotQuery(const QString &query)
             .arg(raw, QString::number(mathRes, 'f', 2));
     }
 
-    // Export CSV
-    if (q.contains("export") || q.contains("csv") || q.contains("rapport")) {
-        QString report = "ID;Client;Nom;Date;Statut;Montant\n";
+    // 6. Détection intelligente de numéro de commande (ex: "commande 005", "route 5", "CMD-007")
+    QRegularExpression cmdNumRx(R"((?:cmd[- ]?|commande\s+|#)(\d+)|(?:\b0*(\d{1,3})\b))", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpressionMatchIterator it = cmdNumRx.globalMatch(q);
+    int matchedRow = -1;
+
+    while (it.hasNext()) {
+        QRegularExpressionMatch match = it.next();
+        QString numStr = match.captured(1);
+        if (numStr.isEmpty()) numStr = match.captured(2);
+        int targetNum = numStr.toInt();
+        if (targetNum <= 0) continue;
+
+        QString formattedId = QString("CMD-%1").arg(targetNum, 3, 10, QChar('0'));
         for (int r = 0; r < ordersTable->rowCount(); ++r) {
-            report += QString("%1;%2;%3;%4;%5;%6\n")
-            .arg(ordersTable->item(r, 1)->text())
-                .arg(ordersTable->item(r, 2)->text())
-                .arg(ordersTable->item(r, 3)->text())
-                .arg(ordersTable->item(r, 4)->text())
-                .arg(ordersTable->cellWidget(r, 5)->findChild<QLabel*>()->text())
-                .arg(ordersTable->item(r, 6)->text());
-        }
-
-        QFile f("rapport_commandes.csv");
-        if (f.open(QIODevice::WriteOnly | QIODevice::Text)) {
-            QTextStream out(&f);
-            out << report;
-            f.close();
-            return "📁 <b>Exportation réussie !</b> Le fichier <code>rapport_commandes.csv</code> a été généré.";
-        }
-    }
-
-    // Recherche de commande + chemin / itinéraire
-    for (int r = 0; r < ordersTable->rowCount(); ++r) {
-        QString id     = ordersTable->item(r, 1)->text().toLower();
-        QString client = ordersTable->item(r, 2)->text().toLower();
-        QString name   = ordersTable->item(r, 3)->text().toLower();
-
-        bool idMatch = (!id.isEmpty() && q.contains(id));
-        bool clientMatch = (!client.isEmpty() && q.contains(client));
-        bool nameMatch = (!name.isEmpty() && (q.contains(name.split(" ").first()) || q.contains(name.split(" ").last())));
-
-        if (idMatch || clientMatch || nameMatch) {
-            ordersTable->selectRow(r);
-            updateDetails(r);
-
-            bool wantsRoute = q.contains("chemin") || q.contains("route") ||
-                              q.contains("itineraire") || q.contains("trajet") ||
-                              q.contains("gps") || q.contains("carte") ||
-                              q.contains("vers");
-
-            if (wantsRoute) {
-                showSelectedRoute();
-                return QString("📍 <b>Itinéraire tracé avec succès :</b><br>"
-                               "• <b>Commande :</b> %1<br>"
-                               "• <b>Destinataire :</b> %2<br>"
-                               "• <b>Destination :</b> %3<br>"
-                               "<i>Le tracé GPS a été calculé et affiché en direct sur la carte.</i>")
-                    .arg(ordersTable->item(r, 1)->text(),
-                         ordersTable->item(r, 3)->text(),
-                         detailAddress ? detailAddress->text().remove("📍  Livraison : ") : "Tunis");
+            if (ordersTable->item(r, 1) && ordersTable->item(r, 1)->text().compare(formattedId, Qt::CaseInsensitive) == 0) {
+                matchedRow = r;
+                break;
             }
+        }
+        if (matchedRow != -1) break;
+    }
 
-            return QString("🎯 <b>Commande sélectionnée :</b> <b>%1</b> (%2) | <b>%3</b> | Statut : <i>%4</i>.")
-                .arg(ordersTable->item(r, 1)->text(), ordersTable->item(r, 3)->text(),
-                     ordersTable->item(r, 6)->text(),
-                     ordersTable->cellWidget(r, 5)->findChild<QLabel*>()->text());
+    // Recherche par nom de client si aucun numéro trouvé
+    if (matchedRow == -1) {
+        for (int r = 0; r < ordersTable->rowCount(); ++r) {
+            QString client = ordersTable->item(r, 2) ? ordersTable->item(r, 2)->text().toLower() : "";
+            QString name   = ordersTable->item(r, 3) ? ordersTable->item(r, 3)->text().toLower() : "";
+            if ((!client.isEmpty() && q.contains(client)) || (!name.isEmpty() && q.contains(name.split(" ").first()))) {
+                matchedRow = r;
+                break;
+            }
         }
     }
 
-    return QString(
-        "💡 <b>Exemples de commandes possibles :</b><br>"
-        "• <i>« Facture PDF »</i> (génère la facture avec QR code)<br>"
-        "• <i>« Scanner express »</i> (ouvre le terminal de colis)<br>"
-        "• <i>« Chemin CMD-001 »</i> (traçage de livraison)<br>"
-        "• <i>« Change CMD-003 en Livrée »</i><br>"
-        "• <i>« Ouvre Articles »</i> ou <i>« 45680 / 124 »</i>"
-        );
-}
+    // Action sur la commande trouvée
+    if (matchedRow != -1) {
+        ordersTable->selectRow(matchedRow);
+        updateDetails(matchedRow);
 
+        bool wantsRoute = q.contains("route") || q.contains("chemin") || q.contains("itineraire") ||
+                          q.contains("trajet") || q.contains("gps") || q.contains("carte") || q.contains("localisation");
+
+        if (wantsRoute) {
+            showSelectedRoute();
+            return QString("📍 <b>Itinéraire et localisation affichés :</b><br>"
+                           "• <b>Commande :</b> %1<br>"
+                           "• <b>Client :</b> %2<br>"
+                           "• <b>Adresse :</b> %3<br>"
+                           "• <b>Distance :</b> %4 | <b>Délai :</b> %5<br>"
+                           "<i>Le marqueur et le tracé GPS ont été mis à jour sur la carte.</i>")
+                .arg(ordersTable->item(matchedRow, 1)->text(),
+                     ordersTable->item(matchedRow, 3)->text(),
+                     detailAddress ? detailAddress->text().remove("📍  Livraison : ") : "Tunis",
+                     distanceLabel ? distanceLabel->text() : "5.8 km",
+                     delayLabel ? delayLabel->text() : "1 jour");
+        }
+
+        return QString("🎯 <b>Commande sélectionnée :</b> <b>%1</b> (%2)<br>"
+                       "• Montant : <b>%3</b><br>"
+                       "• Statut : <i>%4</i>.")
+            .arg(ordersTable->item(matchedRow, 1)->text(),
+                 ordersTable->item(matchedRow, 3)->text(),
+                 ordersTable->item(matchedRow, 6)->text(),
+                 ordersTable->cellWidget(matchedRow, 5)->findChild<QLabel*>()->text());
+    }
+
+    return QString(); // Aucune commande locale spécifique trouvée -> transmettre à l'IA Cloud
+}
 // ---------------------------------------------------------------------------
 // Logique des Commandes
 // ---------------------------------------------------------------------------
@@ -1935,4 +1973,65 @@ void MainWindow::centerMap()
 void MainWindow::showSelectedRoute()
 {
     sendMapCommand(QString("showRoute(%1,%2);").arg(selectedClientLat, selectedClientLon));
+}
+
+// ---------------------------------------------------------------------------
+// GESTIONNAIRE DE L'AGENT IA GROQ (LLAMA 3.1)
+// ---------------------------------------------------------------------------
+void MainWindow::initAIAgent()
+{
+    conversationHistory = QJsonArray();
+
+    QJsonObject systemPrompt;
+    systemPrompt["role"] = "system";
+    systemPrompt["content"] =
+        "Tu es 'StyleBot', un copilote IA expert intégré dans l'application StyleHub / Fashionova. "
+        "Tu assistes les responsables dans la gestion d'atelier textile, le suivi des commandes, "
+        "l'estimation des délais de confection, les calculs de remises et la logistique. "
+        "Réponds toujours avec précision, courtoisie, de manière concise et en français.";
+    conversationHistory.append(systemPrompt);
+}
+
+void MainWindow::onAiResponseReceived(QNetworkReply *reply)
+{
+    // Supprime la bulle "StyleBot réfléchit..."
+    if (chatMessagesLayout->count() > 1) {
+        QLayoutItem *lastItem = chatMessagesLayout->itemAt(chatMessagesLayout->count() - 2);
+        if (lastItem && lastItem->widget()) {
+            QLabel *lastLbl = lastItem->widget()->findChild<QLabel*>();
+            if (lastLbl && lastLbl->text().contains("réfléchit")) {
+                QWidget *w = lastItem->widget();
+                chatMessagesLayout->removeWidget(w);
+                w->deleteLater();
+            }
+        }
+    }
+
+    QByteArray responseBytes = reply->readAll();
+
+    if (reply->error() == QNetworkReply::NoError) {
+        QJsonDocument doc = QJsonDocument::fromJson(responseBytes);
+        QJsonObject root = doc.object();
+
+        if (root.contains("choices") && root["choices"].isArray()) {
+            QJsonArray choices = root["choices"].toArray();
+            if (!choices.isEmpty()) {
+                QString botText = choices[0].toObject()["message"].toObject()["content"].toString();
+                addChatMessage("Bot", botText, false);
+
+                QJsonObject assistantMsg;
+                assistantMsg["role"] = "assistant";
+                assistantMsg["content"] = botText;
+                conversationHistory.append(assistantMsg);
+            }
+        }
+    } else {
+        QString serverMsg = QString::fromUtf8(responseBytes);
+        if (serverMsg.isEmpty()) {
+            serverMsg = reply->errorString();
+        }
+        addChatMessage("Bot", "⚠️ <b>Erreur :</b> " + serverMsg, false);
+    }
+
+    reply->deleteLater();
 }
