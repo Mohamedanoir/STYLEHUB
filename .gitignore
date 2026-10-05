@@ -1,0 +1,12 @@
+build/
+build-*/
+.qtcreator/
+*.user
+*.user.*
+*.o
+*.obj
+*.exe
+*.dll
+*.stash
+.qmake.stash
+rapport_commandes.csv

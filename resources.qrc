@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>web/map.html</file>
+        <file>images/sidebar.png</file>
+        <file>images/image_tete.png</file>
+        <file>images/prod_veste.png</file>
+        <file>images/prod_bijoux.png</file>
+        <file>images/prod_chaussure.png</file>
+        <file>images/prod_lunette.png</file>
+        <file>images/prod_montre.png</file>
+        <file>images/prod_sac.png</file>
+    </qresource>
+</RCC>

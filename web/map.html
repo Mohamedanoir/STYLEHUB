@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <style>
+        html, body, #map { height: 100%; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+
+        .leaflet-routing-container { display: none !important; }
+
+        /* Style de la carte de légende flottante */
+        .legend-card {
+            background: rgba(255, 255, 255, 0.96);
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+            border: 1px solid #E2E8F0;
+            font-size: 11px;
+            line-height: 22px;
+            color: #1E293B;
+            min-width: 135px;
+        }
+        .legend-title {
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #0F172A;
+            font-size: 11.5px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 2px;
+        }
+
+        /* Marqueur Pin d'emplacement sur la carte */
+        .pin-marker {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        const map = L.map('map', { zoomControl: true }).setView([36.835, 10.19], 12);
+
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // SVG exact du Pin d'emplacement stylisé (goutte + bordure blanche + anneau intérieur)
+        function getPinSvg(color, width = 28, height = 36) {
+            return `<svg width="${width}" height="${height}" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 0.5C6.54416 0.5 0.5 6.54416 0.5 14C0.5 23.5 14 35.5 14 35.5C14 35.5 27.5 23.5 27.5 14C27.5 6.54416 21.4558 0.5 14 0.5Z" fill="${color}" stroke="#FFFFFF" stroke-width="2"/>
+                <circle cx="14" cy="13.5" r="5" fill="#FFFFFF"/>
+                <circle cx="14" cy="13.5" r="2.8" fill="${color}"/>
+            </svg>`;
+        }
+
+        function createPin(color) {
+            return L.divIcon({
+                className: 'pin-marker',
+                html: getPinSvg(color, 28, 36),
+                iconSize: [28, 36],
+                iconAnchor: [14, 36],
+                popupAnchor: [0, -32]
+            });
+        }
+
+        // Marqueur Atelier Central (boîte bleu marine avec icône usine)
+        const workshopPin = L.divIcon({
+            className: 'pin-marker',
+            html: `<div style="background:#082849; color:white; border-radius:8px; padding:4px 6px; border:2px solid white; box-shadow:0 3px 6px rgba(0,0,0,0.35); font-size:15px; display:flex; align-items:center; justify-content:center;">🏭</div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
+
+        // Atelier central
+        const workshop = L.latLng(36.8065, 10.1815);
+        L.marker(workshop, { icon: workshopPin }).addTo(map).bindPopup("<b>Atelier central</b><br>Point de départ des livraisons");
+
+        // Commandes clients avec leurs couleurs
+        const clients = [
+            { id: "CMD-001", name: "Sarah Ben Ali", status: "Livrée", lat: 36.8065, lon: 10.1815, col: "#10B981" },
+            { id: "CMD-002", name: "Yassine Trabelsi", status: "En cours", lat: 36.8665, lon: 10.1647, col: "#F59E0B" },
+            { id: "CMD-003", name: "Lina Khroub", status: "Prête en atelier", lat: 36.8450, lon: 10.2200, col: "#2563EB" },
+            { id: "CMD-005", name: "Maya Sassi", status: "Livrée", lat: 36.7750, lon: 10.2450, col: "#10B981" },
+            { id: "CMD-007", name: "Ramla Boussetta", status: "En cours", lat: 36.8330, lon: 10.1500, col: "#F59E0B" },
+            { id: "CMD-008", name: "Leila Srail", status: "Livrée", lat: 36.7350, lon: 10.3000, col: "#10B981" }
+        ];
+
+        let markers = {};
+        clients.forEach(c => {
+            const m = L.marker([c.lat, c.lon], { icon: createPin(c.col) }).addTo(map);
+            m.bindPopup(`<b>${c.id} — ${c.name}</b><br>Statut: ${c.status}`);
+            markers[c.id] = m;
+        });
+
+        // Légende flottante en bas à gauche avec les VRAIS pins d'emplacement
+        const legend = L.control({ position: 'bottomleft' });
+        legend.onAdd = function() {
+            const div = L.DomUtil.create('div', 'legend-card');
+            div.innerHTML = `
+                <div class="legend-title">Statut des livraisons</div>
+                <div class="legend-item">
+                    ${getPinSvg("#10B981", 16, 21)}
+                    <span>Livrée</span>
+                </div>
+                <div class="legend-item">
+                    ${getPinSvg("#F59E0B", 16, 21)}
+                    <span>En cours d'expédition</span>
+                </div>
+                <div class="legend-item">
+                    ${getPinSvg("#2563EB", 16, 21)}
+                    <span>Prête en atelier</span>
+                </div>
+                <div class="legend-item">
+                    <span style="display:inline-block; width:16px; text-align:center; font-size:13px;">🏭</span>
+                    <span>Atelier central</span>
+                </div>
+            `;
+            return div;
+        };
+        legend.addTo(map);
+
+        let routingControl = null;
+
+        // Tracé réel sur les rues avec OSRM
+        function showRoute(destLat, destLon) {
+            if (routingControl) {
+                map.removeControl(routingControl);
+            }
+
+            routingControl = L.Routing.control({
+                waypoints: [
+                    workshop,
+                    L.latLng(parseFloat(destLat), parseFloat(destLon))
+                ],
+                router: L.Routing.osrmv1({
+                    serviceUrl: 'https://router.project-osrm.org/route/v1'
+                }),
+                lineOptions: {
+                    styles: [{ color: '#2563EB', opacity: 0.85, weight: 6 }]
+                },
+                createMarker: function() { return null; },
+                addWaypoints: false,
+                draggableWaypoints: false,
+                fitSelectedRoutes: true,
+                show: false
+            }).addTo(map);
+        }
+
+        function selectClient(lat, lon, id) {
+            if (markers[id]) markers[id].openPopup();
+            map.flyTo([parseFloat(lat), parseFloat(lon)], 13, { duration: 0.8 });
+        }
+
+        function centerWorkshop() {
+            map.flyTo([workshop.lat, workshop.lng], 12, { duration: 0.8 });
+        }
+    </script>
+</body>
+</html>
