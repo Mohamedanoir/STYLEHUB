@@ -9,4 +9,4 @@ build-*/
 *.dll
 *.stash
 .qmake.stash
-rapport_commandes.csv
+rapport_commandes.csvapi_key.txt 

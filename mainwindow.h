@@ -81,7 +81,7 @@ private:
     // Infrastructure Agent IA (Groq Cloud / Llama 3.1)
     QNetworkAccessManager *networkManager;
     QJsonArray conversationHistory;
-    const QString GROQ_API_KEY = "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";
+    QString getApiKey();
 
     // Méthodes d'initialisation UI
     QWidget* makeSidebar();

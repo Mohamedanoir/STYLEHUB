@@ -1626,7 +1626,15 @@ void MainWindow::addChatMessage(const QString &sender, const QString &text, bool
     int idx = qMax(0, chatMessagesLayout->count() - 1);
     chatMessagesLayout->insertWidget(idx, msgFrame);
 }
-
+QString MainWindow::getApiKey()
+{
+    QFile file("api_key.txt");
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return QTextStream(&file).readLine().trimmed();
+    }
+    // Clé de secours si le fichier n'est pas trouvé
+    return "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";
+}
 // ---------------------------------------------------------------------------
 // ENVOI DU MESSAGE (Hybride : Actions directes GUI OU Requête IA Groq Llama 3.1)
 // ---------------------------------------------------------------------------
@@ -1668,8 +1676,8 @@ void MainWindow::handleSendChatMessage()
     QUrl apiUrl("https://api.groq.com/openai/v1/chat/completions");
     QNetworkRequest request(apiUrl);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    QString authHeader = "Bearer " + getApiKey();
 
-    QString authHeader = "Bearer " + GROQ_API_KEY.trimmed();
     request.setRawHeader("Authorization", authHeader.toUtf8());
 
     QSslConfiguration sslConfig = QSslConfiguration::defaultConfiguration();
