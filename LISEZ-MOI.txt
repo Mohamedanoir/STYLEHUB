@@ -1,0 +1,10 @@
+HighFashionWorkshop v8
+======================
+Le dossier doit contenir :  HighFashionWorkshop.pro, main.cpp, mainwindow.h, mainwindow.cpp,
+mainwindow.ui, resources.qrc  ET les dossiers  images/  et  icons/  (obligatoires !).
+
+1. Dézipper dans un nouveau dossier
+2. Qt Creator > ouvrir HighFashionWorkshop.pro
+3. Compilation > Nettoyer tout  >  Exécuter qmake  >  Ctrl+R
+Titre attendu de la fenêtre : "... (v8)"
+Si les images manquent, un message l'indique au démarrage.
