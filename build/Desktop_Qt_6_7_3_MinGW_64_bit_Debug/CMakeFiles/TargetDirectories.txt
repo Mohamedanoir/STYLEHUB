@@ -1,0 +1,5 @@
+C:/Users/nourk/Downloads/STYLEHUB/build/Desktop_Qt_6_7_3_MinGW_64_bit_Debug/CMakeFiles/FashioNova.dir
+C:/Users/nourk/Downloads/STYLEHUB/build/Desktop_Qt_6_7_3_MinGW_64_bit_Debug/CMakeFiles/edit_cache.dir
+C:/Users/nourk/Downloads/STYLEHUB/build/Desktop_Qt_6_7_3_MinGW_64_bit_Debug/CMakeFiles/rebuild_cache.dir
+C:/Users/nourk/Downloads/STYLEHUB/build/Desktop_Qt_6_7_3_MinGW_64_bit_Debug/CMakeFiles/FashioNova_autogen_timestamp_deps.dir
+C:/Users/nourk/Downloads/STYLEHUB/build/Desktop_Qt_6_7_3_MinGW_64_bit_Debug/CMakeFiles/FashioNova_autogen.dir

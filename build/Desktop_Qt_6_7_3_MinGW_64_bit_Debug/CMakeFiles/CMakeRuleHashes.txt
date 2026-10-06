@@ -1,0 +1,4 @@
+# Hashes of file build rules.
+095efb81f50fe9d6d5e83426d836bfb2 CMakeFiles/FashioNova_autogen
+4ec5175b5a842eddaf2701916b09b3aa FashioNova_autogen/EWIEGA46WW/qrc_resources.cpp
+dd506b5ea4b2b8cad4e7da3d50282c6f FashioNova_autogen/timestamp
