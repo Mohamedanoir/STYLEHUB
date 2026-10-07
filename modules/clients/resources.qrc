@@ -1,0 +1,22 @@
+<RCC>
+  <qresource prefix="/">
+    <file>images/sidebar.png</file>
+    <file>images/logo.png</file>
+    <file>images/banner.png</file>
+    <file>images/stats_repartition.png</file>
+    <file>images/stats_evolution.png</file>
+    <file>images/stats_top5.png</file>
+    <file>icons/clients_off.png</file>
+    <file>icons/clients_on.png</file>
+    <file>icons/employes_off.png</file>
+    <file>icons/employes_on.png</file>
+    <file>icons/commandes_off.png</file>
+    <file>icons/commandes_on.png</file>
+    <file>icons/maquettes_off.png</file>
+    <file>icons/maquettes_on.png</file>
+    <file>icons/machines_off.png</file>
+    <file>icons/machines_on.png</file>
+    <file>icons/articles_off.png</file>
+    <file>icons/articles_on.png</file>
+  </qresource>
+</RCC>

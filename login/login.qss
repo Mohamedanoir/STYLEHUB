@@ -1,0 +1,172 @@
+/* =========================================================
+   FASHIONOVA - Authentification
+   Palette : bleu nuit #0F1B2E, crème #F4EBDF, or #C9A45C,
+   bronze #9C6B30, texte #1C2433.
+   Chargé dans main.cpp à l'exécution : le .ui reste sans couleurs.
+   ========================================================= */
+
+QMainWindow, QWidget#centralwidget, QWidget#panneauDroit, QWidget#formulaire {
+    background-color: #F4EBDF;
+}
+
+/* ================= Panneau gauche ================= */
+QFrame#panneauGauche {
+    background-color: #0F1B2E;
+    border-radius: 30px;
+}
+QFrame#cadreInterieur {
+    background-color: transparent;
+    background-image: url(:/login/images/cercle.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    border: 1px solid rgba(201, 164, 92, 90);
+    border-radius: 24px;
+}
+QFrame#cadreInterieur QLabel {
+    background: transparent;
+    border: none;
+}
+QFrame#decoLigneGauche, QFrame#decoLigneDroite {
+    background-color: #C9A45C;
+    border: none;
+}
+QLabel#decoEtoile {
+    color: #C9A45C;
+    font-size: 18px;
+}
+QLabel#titreGauche {
+    color: #FFFFFF;
+    font-family: "Cormorant Garamond Medium";
+    font-size: 50px;
+}
+QLabel#sousTitreGauche {
+    color: #D9D4CA;
+    font-family: "Jost";
+    font-size: 18px;
+}
+QLabel#valeursLabel {
+    color: #C9A45C;
+    font-family: "Jost Medium";
+    font-size: 14px;
+    letter-spacing: 4px;
+}
+
+/* ================= Formulaire ================= */
+QLabel#espaceMembre {
+    color: #9C6B30;
+    font-family: "Jost SemiBold";
+    font-size: 14px;
+    letter-spacing: 5px;
+}
+QLabel#bonRetour {
+    color: #111B2C;
+    font-family: "Cormorant Garamond Medium";
+    font-size: 64px;
+}
+QLabel#sousTitre {
+    color: #3A4150;
+    font-family: "Jost";
+    font-size: 18px;
+}
+QLabel#lblLogin, QLabel#lblMotDePasse, QLabel#lblRole {
+    color: #111B2C;
+    font-family: "Jost Medium";
+    font-size: 16px;
+}
+QPushButton#btnMotDePasseOublie {
+    background: transparent;
+    border: none;
+    color: #9C6B30;
+    font-family: "Jost";
+    font-size: 16px;
+    padding: 0px;
+}
+QPushButton#btnMotDePasseOublie:hover {
+    color: #6E4A1F;
+    text-decoration: underline;
+}
+
+/* Champs */
+QLineEdit#loginEdit, QLineEdit#motDePasseEdit, QComboBox#roleCombo {
+    background-color: #FFFFFF;
+    color: #1C2433;
+    border: 1px solid #E4D6C1;
+    border-radius: 14px;
+    font-family: "Jost";
+    font-size: 18px;
+}
+QLineEdit#loginEdit {
+    padding: 0px 20px 0px 62px;
+}
+QLineEdit#motDePasseEdit {
+    padding: 0px 62px 0px 62px;
+}
+QComboBox#roleCombo {
+    padding-left: 60px;
+}
+QLineEdit#loginEdit:focus, QLineEdit#motDePasseEdit:focus, QComboBox#roleCombo:focus {
+    border: 1px solid #C9A45C;
+}
+QComboBox#roleCombo::drop-down {
+    border: none;
+    width: 56px;
+}
+QComboBox#roleCombo::down-arrow {
+    image: url(:/login/images/chevron.png);
+    width: 16px;
+    height: 11px;
+}
+QComboBox#roleCombo QAbstractItemView {
+    background-color: #FFFFFF;
+    color: #1C2433;
+    border: 1px solid #E4D6C1;
+    selection-background-color: #0F1B2E;
+    selection-color: #FFFFFF;
+    font-family: "Jost";
+    font-size: 16px;
+    outline: none;
+}
+
+/* Case à cocher */
+QCheckBox#checkSouvenir {
+    color: #1C2433;
+    font-family: "Jost";
+    font-size: 17px;
+    spacing: 14px;
+}
+QCheckBox#checkSouvenir::indicator {
+    width: 26px;
+    height: 26px;
+    border: 2px solid #9C6B30;
+    border-radius: 5px;
+    background-color: #FFFFFF;
+}
+QCheckBox#checkSouvenir::indicator:checked {
+    background-color: #9C6B30;
+    image: url(:/login/images/coche.png);
+}
+
+/* Bouton principal */
+QPushButton#btnConnecter {
+    background-color: #0F1B2E;
+    color: #FFFFFF;
+    font-family: "Jost SemiBold";
+    font-size: 20px;
+    letter-spacing: 2px;
+    border: none;
+    border-radius: 14px;
+}
+QPushButton#btnConnecter:hover {
+    background-color: #1B2B45;
+}
+QPushButton#btnConnecter:pressed {
+    background-color: #0A1322;
+}
+
+/* Citation */
+QLabel#citation {
+    color: #7B5530;
+    font-family: "Cormorant Garamond Medium";
+    font-style: italic;
+    font-size: 25px;
+}
