@@ -1,0 +1,10 @@
+HighFashionWorkshop v9
+======================
+Le dossier doit contenir :  HighFashionWorkshop.pro, main.cpp, mainwindow.h/.cpp/.ui, articlespage.h/.cpp/.ui,
+widgets.h/.cpp, resources.qrc  ET les dossiers  images/, icons/  et  articles/  (obligatoires !).
+
+1. Dézipper dans un nouveau dossier
+2. Qt Creator > ouvrir HighFashionWorkshop.pro
+3. Compilation > Nettoyer tout  >  Exécuter qmake  >  Ctrl+R
+Titre attendu de la fenêtre : "... (v9)"
+Si les images manquent, un message l'indique au démarrage.
