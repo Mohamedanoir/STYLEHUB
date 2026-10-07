@@ -1,0 +1,35 @@
+STYLEHUB / FASHIONOVA - APPLICATION INTÉGRÉE
+(Gestion des Machines + Gestion des Employés)
+Qt 6.7.3 / Qt Widgets / CMake (ou qmake) / MinGW 64-bit
+=====================================================
+
+OUVRIR LE PROJET
+  Qt Creator -> Fichier -> Ouvrir un fichier ou projet -> CMakeLists.txt
+  Kit : Desktop Qt 6.7.3 MinGW 64-bit -> Configurer le projet -> Exécuter.
+  (STYLEHUB.pro marche aussi si vous préférez qmake.)
+
+STRUCTURE DE L'INTÉGRATION
+  - Application de base : projet « Gestion des Machines »
+    (menu de gauche avec logo, barre du haut, cloche des alertes).
+  - mainwindow.ui contient le QStackedWidget « stackedPages » :
+        index 0 : pageClients    -> à intégrer
+        index 1 : pageEmployes   -> module Employés  (EmployesPage, widget promu)
+        index 2 : pageCommandes  -> à intégrer
+        index 3 : pageMaquettes  -> à intégrer
+        index 4 : pageMachines   -> module Machines  (MachinesPage, widget promu)
+        index 5 : pageArticles   -> à intégrer
+  - Le menu de gauche change de page (Gestion Employés / Gestion Machines ...).
+  - La recherche de la barre du haut agit sur le module affiché.
+
+FICHIERS DU MODULE EMPLOYÉS (repris du projet STYLEHUB-gestion-employes)
+  src/employespage.h / .cpp  : ancien mainwindow.h / .cpp, transformé en page
+                               (sans l'image du menu ni la barre du haut,
+                                remplacées par celles de l'application)
+  src/logindialog.h / .cpp   : « Connexion employé » (démo : EMP001 / 1234)
+  resources/employes/        : banner.png, employee_photo.png
+
+FICHIERS DU MODULE MACHINES : version « GestionMachines_Qt_metiers » (base SQLite
+fashionova_machines.db), avec les deux métiers innovants :
+  src/metiers.h / .cpp : performance du parc par type de machine
+                         + planning de maintenance optimisé automatiquement
+  affichés dans « Statistiques des machines » (machinespage.cpp / .ui).
