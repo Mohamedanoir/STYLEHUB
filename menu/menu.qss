@@ -1,0 +1,67 @@
+/* =========================================================
+   Menu - couleurs de l'image de référence :
+   fond crème, titre et bordures dorés #C9A227,
+   boutons bleu marine #1F3A5F, cercles #2C5282.
+   Chargé dans main.cpp à l'exécution : le .ui reste sans couleurs.
+   ========================================================= */
+
+QWidget#PMenu {
+    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                                      stop:0 #F6EDE0, stop:0.5 #F1E3CC, stop:1 #F6EDE0);
+}
+QScrollArea#scrollMenu, QWidget#contenuMenu, QWidget#colonneMenu {
+    background: transparent;
+}
+QLabel { background: transparent; }
+
+/* ---------- Titre ---------- */
+QLabel#menuTitre {
+    color: #C9A227;
+    font-family: "Georgia", "Times New Roman", serif;
+    font-size: 80px;
+    font-weight: bold;
+    font-style: italic;
+    background: transparent;
+}
+QFrame#decoLigneGaucheMenu, QFrame#decoLigneDroiteMenu {
+    background-color: #C9A227;
+    border: none;
+}
+QLabel#decoEtoileMenu {
+    color: #C9A227;
+    font-size: 30px;
+    background: transparent;
+}
+
+/* ---------- Boutons des modules (l'un sous l'autre) ---------- */
+QPushButton#btnMenuClients, QPushButton#btnMenuEmployes, QPushButton#btnMenuCommandes,
+QPushButton#btnMenuMaquettes, QPushButton#btnMenuArticles, QPushButton#btnMenuMachines {
+    background-color: #1F3A5F;
+    color: #FFFFFF;
+    font-size: 26px;
+    font-weight: bold;
+    text-align: left;
+    border: 2px solid #C9A227;
+    border-radius: 20px;
+    padding-left: 12px;
+}
+QPushButton#btnMenuClients:hover, QPushButton#btnMenuEmployes:hover, QPushButton#btnMenuCommandes:hover,
+QPushButton#btnMenuMaquettes:hover, QPushButton#btnMenuArticles:hover, QPushButton#btnMenuMachines:hover {
+    background-color: #274A78;
+}
+QPushButton#btnMenuClients:pressed, QPushButton#btnMenuEmployes:pressed, QPushButton#btnMenuCommandes:pressed,
+QPushButton#btnMenuMaquettes:pressed, QPushButton#btnMenuArticles:pressed, QPushButton#btnMenuMachines:pressed {
+    background-color: #16304F;
+}
+
+/* ---------- Bouton Quitter (retour à la page de connexion) ---------- */
+QPushButton#btnMenuQuitter {
+    background-color: transparent;
+    color: #1F3A5F;
+    font-size: 20px;
+    font-weight: bold;
+    border: 2px solid #C9A227;
+    border-radius: 20px;
+}
+QPushButton#btnMenuQuitter:hover   { background-color: rgba(201, 162, 39, 0.18); }
+QPushButton#btnMenuQuitter:pressed { background-color: rgba(201, 162, 39, 0.35); }

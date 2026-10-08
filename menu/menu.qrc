@@ -1,0 +1,13 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/menu">
+        <file>images/articles.png</file>
+        <file>images/clients.png</file>
+        <file>images/commandes.png</file>
+        <file>images/employes.png</file>
+        <file>images/fleche.png</file>
+        <file>images/machines.png</file>
+        <file>images/maquettes.png</file>
+        <file>menu.qss</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,21 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/login">
+        <file>images/logo.png</file>
+        <file>images/logo_ombre.png</file>
+        <file>images/cercle.png</file>
+        <file>images/utilisateur.png</file>
+        <file>images/cadenas.png</file>
+        <file>images/oeil.png</file>
+        <file>images/groupe.png</file>
+        <file>images/chevron.png</file>
+        <file>images/coche.png</file>
+        <file>images/fleche.png</file>
+        <file>fonts/Jost-Regular.ttf</file>
+        <file>fonts/Jost-Medium.ttf</file>
+        <file>fonts/Jost-SemiBold.ttf</file>
+        <file>fonts/CormorantGaramond-Medium.ttf</file>
+        <file>fonts/CormorantGaramond-MediumItalic.ttf</file>
+        <file>login.qss</file>
+    </qresource>
+</RCC>
