@@ -1,1 +1,0 @@
-Correction des couleurs : champ Vidéo blanc, texte foncé, bouton Parcourir clair, QMessageBox (alertes, Ajouter, Modifier, Supprimer) fond blanc avec texte foncé et boutons lisibles. Aucune modification de logique métier. Compilation Qt non testée.

@@ -1,1 +1,0 @@
-Champ Vidéo : espace de 18 px entre le champ blanc et le bouton Parcourir, hauteur 38 px, bouton élargi et style beige. Fonctionnalités existantes inchangées. Compilation Qt non testée.

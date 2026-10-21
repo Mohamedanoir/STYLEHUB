@@ -10,7 +10,6 @@
 class QButtonGroup;
 class QComboBox;
 class QDateEdit;
-class QDoubleSpinBox;
 class QFrame;
 class QHBoxLayout;
 class QLabel;
@@ -46,6 +45,7 @@ private slots:
     void onAjouter();
     void onModifier();
     void onSupprimer();
+    void onAfficher();
     void onReinitialiser();
 
     // Liste
@@ -75,7 +75,6 @@ private:
     void construirePagination(int nbPages);
     void rafraichirStatistiques();
     void remplirFormulaire(const QString &id);
-    Maquette lireFormulaire() const;    // lit tous les champs du formulaire
     void mettreAJourBoutonVideo(const QString &video);
     QString nomImage(const QString &type) const;   // "robe", "veste", "jupe" ou ""
     QPixmap apercuPour(const Maquette &m) const;
@@ -97,11 +96,7 @@ private:
     QComboBox   *m_comboStatut = nullptr;
     QLabel      *m_pastilleStatut = nullptr;
     QFrame      *m_fondPastille = nullptr;
-    QComboBox      *m_comboTaille = nullptr;
-    QDoubleSpinBox *m_spinLargeur = nullptr;
-    QDoubleSpinBox *m_spinLongueur = nullptr;
     QTextEdit   *m_editDescription = nullptr;
-    QLineEdit   *m_editVideo = nullptr;
 
     ApercuMaquette *m_apercu = nullptr;
     Miniature      *m_mini[3] = {nullptr, nullptr, nullptr};

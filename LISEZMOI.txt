@@ -35,13 +35,11 @@ FICHIERS
 
 FONCTIONNALITÉS
 - Types : Robe, Veste, Jupe uniquement
-- Ajouter / Modifier / Supprimer (avec contrôle de saisie)
-- Attributs : ID, Nom, Type, Date de création, Statut, Taille (XS, S, M, L, XL),
-  Largeur (cm), Longueur (cm), Description
+- Ajouter / Modifier / Supprimer / Afficher (avec contrôle de saisie)
 - Rechercher : ID, Nom, Type      - Trier : Date de création, Type, Statut
-- Exporter PDF de la liste (avec Taille, Largeur et Longueur)
+- Exporter PDF de la liste
 - Statistiques : par type, évolution (cumul sur 6 mois), Top 5 des maquettes les plus consultées
-  (chaque clic sur une maquette dans la liste ajoute 1 consultation)
+  (chaque clic sur « Afficher » ajoute 1 consultation)
 - Pagination : 5 maquettes par page
 - Cases à cocher : supprimer plusieurs maquettes d'un coup
 - Métier 1 : vidéo de présentation (bouton + sous l'image pour ajouter, ▶ pour lire, crayon pour changer)

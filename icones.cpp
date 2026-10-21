@@ -152,35 +152,6 @@ void dessiner(QPainter &p, const QString &nom, const QColor &c)
         p.drawEllipse(QPointF(12, 13), 3.4, 3.4);
         p.drawLine(QPointF(8, 7.5), QPointF(10, 7.5));
     }
-    else if (nom == "taille") {   // petit t-shirt
-        p.setPen(QPen(c, 1.7, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-        QPainterPath t;
-        t.moveTo(9, 4);
-        t.quadTo(12, 6.5, 15, 4);
-        t.lineTo(20.5, 7);
-        t.lineTo(18.5, 11);
-        t.lineTo(16.5, 10);
-        t.lineTo(16.5, 20);
-        t.lineTo(7.5, 20);
-        t.lineTo(7.5, 10);
-        t.lineTo(5.5, 11);
-        t.lineTo(3.5, 7);
-        t.closeSubpath();
-        p.drawPath(t);
-    }
-    else if (nom == "largeur" || nom == "longueur") {   // règle horizontale / verticale
-        p.setPen(QPen(c, 1.7, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-        if (nom == "longueur") {          // même dessin, tourné de 90°
-            p.translate(12, 12);
-            p.rotate(90);
-            p.translate(-12, -12);
-        }
-        p.drawRoundedRect(QRectF(2.5, 8, 19, 8), 1.5, 1.5);
-        for (int k = 0; k < 5; ++k) {
-            const qreal x = 6 + k * 3;
-            p.drawLine(QPointF(x, 8), QPointF(x, k % 2 == 0 ? 12.5 : 10.5));
-        }
-    }
     else if (nom == "calendar") {
         p.setPen(QPen(c, 1.7, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
         p.drawRoundedRect(QRectF(3.5, 5, 17, 15.5), 2.5, 2.5);

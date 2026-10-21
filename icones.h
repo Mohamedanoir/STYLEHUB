@@ -11,8 +11,7 @@ namespace Icones
 {
     // noms : menu, search, bell, users, employes, clipboard, mannequin, gear, tag,
     //        chevron, idcard, namecard, type, calendar, plus, pencil, trash, eye,
-    //        reset, pdf, list, stats, play, left, right, box, boxcheck, avatar,
-    //        taille, largeur, longueur
+    //        reset, pdf, list, stats, play, left, right, box, boxcheck, avatar
     QPixmap pixmap(const QString &nom, const QColor &couleur, int taille = 24);
     QIcon   icone(const QString &nom, const QColor &couleur, int taille = 24);
 

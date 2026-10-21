@@ -1111,284 +1111,7 @@ Ce module est géré par un autre membre de l'équipe.</string>
                              </layout>
                             </widget>
                            </item>
-                           <item row="5" column="0">
-                            <widget class="QLabel" name="labelTaille">
-                             <property name="text">
-                              <string>Taille</string>
-                             </property>
-                             <property name="role" stdset="0">
-                              <string>labelChamp</string>
-                             </property>
-                            </widget>
-                           </item>
-                           <item row="5" column="1">
-                            <widget class="QFrame" name="champTaille">
-                             <property name="role" stdset="0">
-                              <string>champ</string>
-                             </property>
-                             <property name="minimumSize">
-                              <size>
-                               <width>0</width>
-                               <height>36</height>
-                              </size>
-                             </property>
-                             <property name="maximumSize">
-                              <size>
-                               <width>16777215</width>
-                               <height>36</height>
-                              </size>
-                             </property>
-                             <layout class="QHBoxLayout" name="layout_champTaille">
-                              <property name="leftMargin">
-                               <number>10</number>
-                              </property>
-                              <property name="topMargin">
-                               <number>0</number>
-                              </property>
-                              <property name="rightMargin">
-                               <number>4</number>
-                              </property>
-                              <property name="bottomMargin">
-                               <number>0</number>
-                              </property>
-                              <property name="spacing">
-                               <number>10</number>
-                              </property>
-                              <item>
-                               <widget class="QLabel" name="iconeTaille">
-                                <property name="text">
-                                 <string/>
-                                </property>
-                                <property name="minimumSize">
-                                 <size>
-                                  <width>22</width>
-                                  <height>0</height>
-                                 </size>
-                                </property>
-                                <property name="maximumSize">
-                                 <size>
-                                  <width>22</width>
-                                  <height>16777215</height>
-                                 </size>
-                                </property>
-                               </widget>
-                              </item>
-                              <item>
-                               <widget class="QComboBox" name="comboTaille">
-                                <property name="role" stdset="0">
-                                 <string>interne</string>
-                                </property>
-                                <item>
-                                 <property name="text">
-                                  <string>XS</string>
-                                 </property>
-                                </item>
-                                <item>
-                                 <property name="text">
-                                  <string>S</string>
-                                 </property>
-                                </item>
-                                <item>
-                                 <property name="text">
-                                  <string>M</string>
-                                 </property>
-                                </item>
-                                <item>
-                                 <property name="text">
-                                  <string>L</string>
-                                 </property>
-                                </item>
-                                <item>
-                                 <property name="text">
-                                  <string>XL</string>
-                                 </property>
-                                </item>
-                               </widget>
-                              </item>
-                             </layout>
-                            </widget>
-                           </item>
-                           <item row="6" column="0">
-                            <widget class="QLabel" name="labelLargeur">
-                             <property name="text">
-                              <string>Largeur</string>
-                             </property>
-                             <property name="role" stdset="0">
-                              <string>labelChamp</string>
-                             </property>
-                            </widget>
-                           </item>
-                           <item row="6" column="1">
-                            <widget class="QFrame" name="champLargeur">
-                             <property name="role" stdset="0">
-                              <string>champ</string>
-                             </property>
-                             <property name="minimumSize">
-                              <size>
-                               <width>0</width>
-                               <height>36</height>
-                              </size>
-                             </property>
-                             <property name="maximumSize">
-                              <size>
-                               <width>16777215</width>
-                               <height>36</height>
-                              </size>
-                             </property>
-                             <layout class="QHBoxLayout" name="layout_champLargeur">
-                              <property name="leftMargin">
-                               <number>10</number>
-                              </property>
-                              <property name="topMargin">
-                               <number>0</number>
-                              </property>
-                              <property name="rightMargin">
-                               <number>4</number>
-                              </property>
-                              <property name="bottomMargin">
-                               <number>0</number>
-                              </property>
-                              <property name="spacing">
-                               <number>10</number>
-                              </property>
-                              <item>
-                               <widget class="QLabel" name="iconeLargeur">
-                                <property name="text">
-                                 <string/>
-                                </property>
-                                <property name="minimumSize">
-                                 <size>
-                                  <width>22</width>
-                                  <height>0</height>
-                                 </size>
-                                </property>
-                                <property name="maximumSize">
-                                 <size>
-                                  <width>22</width>
-                                  <height>16777215</height>
-                                 </size>
-                                </property>
-                               </widget>
-                              </item>
-                              <item>
-                               <widget class="QDoubleSpinBox" name="spinLargeur">
-                                <property name="role" stdset="0">
-                                 <string>interne</string>
-                                </property>
-                                <property name="buttonSymbols">
-                                 <enum>QAbstractSpinBox::NoButtons</enum>
-                                </property>
-                                <property name="decimals">
-                                 <number>1</number>
-                                </property>
-                                <property name="minimum">
-                                 <double>0.000000000000000</double>
-                                </property>
-                                <property name="maximum">
-                                 <double>300.000000000000000</double>
-                                </property>
-                                <property name="singleStep">
-                                 <double>0.500000000000000</double>
-                                </property>
-                                <property name="suffix">
-                                 <string> cm</string>
-                                </property>
-                               </widget>
-                              </item>
-                             </layout>
-                            </widget>
-                           </item>
-                           <item row="7" column="0">
-                            <widget class="QLabel" name="labelLongueur">
-                             <property name="text">
-                              <string>Longueur</string>
-                             </property>
-                             <property name="role" stdset="0">
-                              <string>labelChamp</string>
-                             </property>
-                            </widget>
-                           </item>
-                           <item row="7" column="1">
-                            <widget class="QFrame" name="champLongueur">
-                             <property name="role" stdset="0">
-                              <string>champ</string>
-                             </property>
-                             <property name="minimumSize">
-                              <size>
-                               <width>0</width>
-                               <height>36</height>
-                              </size>
-                             </property>
-                             <property name="maximumSize">
-                              <size>
-                               <width>16777215</width>
-                               <height>36</height>
-                              </size>
-                             </property>
-                             <layout class="QHBoxLayout" name="layout_champLongueur">
-                              <property name="leftMargin">
-                               <number>10</number>
-                              </property>
-                              <property name="topMargin">
-                               <number>0</number>
-                              </property>
-                              <property name="rightMargin">
-                               <number>4</number>
-                              </property>
-                              <property name="bottomMargin">
-                               <number>0</number>
-                              </property>
-                              <property name="spacing">
-                               <number>10</number>
-                              </property>
-                              <item>
-                               <widget class="QLabel" name="iconeLongueur">
-                                <property name="text">
-                                 <string/>
-                                </property>
-                                <property name="minimumSize">
-                                 <size>
-                                  <width>22</width>
-                                  <height>0</height>
-                                 </size>
-                                </property>
-                                <property name="maximumSize">
-                                 <size>
-                                  <width>22</width>
-                                  <height>16777215</height>
-                                 </size>
-                                </property>
-                               </widget>
-                              </item>
-                              <item>
-                               <widget class="QDoubleSpinBox" name="spinLongueur">
-                                <property name="role" stdset="0">
-                                 <string>interne</string>
-                                </property>
-                                <property name="buttonSymbols">
-                                 <enum>QAbstractSpinBox::NoButtons</enum>
-                                </property>
-                                <property name="decimals">
-                                 <number>1</number>
-                                </property>
-                                <property name="minimum">
-                                 <double>0.000000000000000</double>
-                                </property>
-                                <property name="maximum">
-                                 <double>300.000000000000000</double>
-                                </property>
-                                <property name="singleStep">
-                                 <double>0.500000000000000</double>
-                                </property>
-                                <property name="suffix">
-                                 <string> cm</string>
-                                </property>
-                               </widget>
-                              </item>
-                             </layout>
-                            </widget>
-                           </item>
-                           <item row="8" column="0" alignment="Qt::AlignTop">
+                           <item row="5" column="0" alignment="Qt::AlignTop">
                             <widget class="QLabel" name="labelDescription">
                              <property name="text">
                               <string>Description</string>
@@ -1398,7 +1121,7 @@ Ce module est géré par un autre membre de l'équipe.</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="8" column="1">
+                           <item row="5" column="1">
                             <widget class="QTextEdit" name="editDescription">
                              <property name="minimumSize">
                               <size>
@@ -1416,20 +1139,6 @@ Ce module est géré par un autre membre de l'équipe.</string>
                               <string>Description de la maquette ...</string>
                              </property>
                             </widget>
-                           </item>
-                           <item row="9" column="0" alignment="Qt::AlignVCenter">
-                            <widget class="QLabel" name="labelVideo">
-                             <property name="text"><string>Vidéo</string></property>
-                             <property name="role" stdset="0"><string>labelChamp</string></property>
-                            </widget>
-                           </item>
-                           <item row="9" column="1">
-                            <layout class="QHBoxLayout" name="layoutVideo">
-                             <property name="spacing"><number>18</number></property>
-                             <property name="leftMargin"><number>0</number></property><property name="topMargin"><number>4</number></property><property name="rightMargin"><number>0</number></property><property name="bottomMargin"><number>4</number></property>
-                             <item><widget class="QLineEdit" name="editVideo"><property name="minimumSize"><size><width>175</width><height>38</height></size></property><property name="placeholderText"><string>Chemin de la vidéo...</string></property></widget></item>
-                             <item><widget class="QPushButton" name="btnParcourirVideo"><property name="minimumSize"><size><width>108</width><height>38</height></size></property><property name="text"><string>Parcourir</string></property></widget></item>
-                            </layout>
                            </item>
                           </layout>
                          </item>
@@ -1616,6 +1325,31 @@ Ce module est géré par un autre membre de l'équipe.</string>
                            </property>
                            <property name="role" stdset="0">
                             <string>btnBeige</string>
+                           </property>
+                           <property name="cursor">
+                            <cursorShape>PointingHandCursor</cursorShape>
+                           </property>
+                           <property name="minimumSize">
+                            <size>
+                             <width>0</width>
+                             <height>42</height>
+                            </size>
+                           </property>
+                           <property name="maximumSize">
+                            <size>
+                             <width>16777215</width>
+                             <height>42</height>
+                            </size>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="1" column="1">
+                          <widget class="QPushButton" name="btnAfficher">
+                           <property name="text">
+                            <string>Afficher</string>
+                           </property>
+                           <property name="role" stdset="0">
+                            <string>btnClair</string>
                            </property>
                            <property name="cursor">
                             <cursorShape>PointingHandCursor</cursorShape>

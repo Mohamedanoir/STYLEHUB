@@ -12,7 +12,6 @@ SOURCES += \
     statwidgets.cpp \
     icones.cpp \
     widgets.cpp \
-    modulepage.cpp \
     mainwindow.cpp
 
 HEADERS += \
@@ -21,7 +20,6 @@ HEADERS += \
     statwidgets.h \
     icones.h \
     widgets.h \
-    modulepage.h \
     mainwindow.h
 
 RESOURCES += resources.qrc
