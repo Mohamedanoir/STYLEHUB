@@ -3,12 +3,14 @@
 #include "icones.h"
 #include "statwidgets.h"
 #include "widgets.h"
+#include "modulepage.h"
 
 #include <QAbstractItemView>
 #include <QApplication>
 #include <QButtonGroup>
 #include <QComboBox>
 #include <QDateEdit>
+#include <QDoubleSpinBox>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -124,7 +126,11 @@ void MainWindow::configurerInterface()
     m_comboStatut      = ui->comboStatut;
     m_pastilleStatut   = ui->pastilleStatut;
     m_fondPastille     = ui->fondPastille;
+    m_comboTaille      = ui->comboTaille;
+    m_spinLargeur      = ui->spinLargeur;
+    m_spinLongueur     = ui->spinLongueur;
     m_editDescription  = ui->editDescription;
+    m_editVideo        = ui->editVideo;
     m_apercu           = ui->apercu;
     m_mini[0] = ui->mini1;
     m_mini[1] = ui->mini2;
@@ -162,9 +168,47 @@ void MainWindow::configurerInterface()
         nav[i]->setFixedHeight(40);
         m_navGroupe->addButton(nav[i], i);
     }
-    connect(m_navGroupe, &QButtonGroup::idClicked, this, [this](int id) { m_pages->setCurrentIndex(id); });
+    connect(m_navGroupe, &QButtonGroup::idClicked, this, [this](int id) { m_pages->setCurrentIndex(id); if (id == 3) rafraichirStatistiques(); });
     ui->btnMaquettes->setChecked(true);
     m_pages->setCurrentIndex(3);
+
+    // ---- Pages Commandes et Machines : boutons Ajouter/Modifier/Supprimer/Afficher
+    //      NON fonctionnels (ils ouvrent seulement un formulaire d'exemple)
+    {
+        using T = ChampForm;
+        auto remplacer = [this](QWidget *ancien, ModulePage *page) {
+            QLayout *lay = ancien->layout();
+            while (QLayoutItem *it = lay->takeAt(0)) {   // enlève le texte "géré par un autre membre"
+                delete it->widget();
+                delete it;
+            }
+            lay->setContentsMargins(0, 0, 0, 0);
+            lay->addWidget(page);
+        };
+
+        remplacer(ui->pageCommandes, new ModulePage("Commandes",
+            { {"ID", T::Texte, {}}, {"Client", T::Texte, {}}, {"Date", T::Date, {}},
+              {"Montant (DT)", T::Nombre, {}},
+              {"Statut", T::Choix, {"En cours", "Livrée", "Annulée"}},
+              {"Remarques", T::Description, {}} },
+            { {"CMD-001", "Sarra Ben Ali",  "02/10/2026", "450", "En cours", "Robe de soirée"},
+              {"CMD-002", "Mohamed Trabelsi", "03/10/2026", "280", "Livrée", "Veste en lin"},
+              {"CMD-003", "Ines Gharbi",    "05/10/2026", "190", "En cours", "Jupe plissée"},
+              {"CMD-004", "Yassine Hamdi",  "06/10/2026", "620", "Annulée",  "Costume sur mesure"} },
+            ui->pageCommandes));
+
+        remplacer(ui->pageMachines, new ModulePage("Machines",
+            { {"Référence", T::Texte, {}}, {"Nom", T::Texte, {}},
+              {"Type", T::Choix, {"Couture", "Coupe", "Broderie", "Repassage"}},
+              {"Date d'achat", T::Date, {}},
+              {"État", T::Choix, {"Fonctionnelle", "En panne", "En maintenance"}},
+              {"Notes", T::Description, {}} },
+            { {"MCH-01", "Surjeteuse Juki", "Couture",   "12/01/2024", "Fonctionnelle",  "Atelier 1"},
+              {"MCH-02", "Table de coupe",  "Coupe",     "03/03/2023", "Fonctionnelle",  "Atelier 1"},
+              {"MCH-03", "Brodeuse Brother", "Broderie", "21/06/2025", "En maintenance", "Atelier 2"},
+              {"MCH-04", "Fer industriel",  "Repassage", "15/09/2022", "En panne",       "Atelier 2"} },
+            ui->pageMachines));
+    }
 
     // ---- Barre du haut
     iconeBouton(ui->btnMenu, "menu", TEXTE, 26);
@@ -205,6 +249,9 @@ void MainWindow::configurerInterface()
     ui->iconeId->setPixmap(Icones::pixmap("idcard", TEXTE, 20));
     ui->iconeNom->setPixmap(Icones::pixmap("namecard", TEXTE, 20));
     ui->iconeType->setPixmap(Icones::pixmap("type", TEXTE, 20));
+    ui->iconeTaille->setPixmap(Icones::pixmap("taille", TEXTE, 20));
+    ui->iconeLargeur->setPixmap(Icones::pixmap("largeur", TEXTE, 20));
+    ui->iconeLongueur->setPixmap(Icones::pixmap("longueur", TEXTE, 20));
     iconeBouton(ui->btnCalendrier, "calendar", TEXTE, 20);
     connect(ui->btnCalendrier, &QToolButton::clicked, this, [this]() {
         m_dateCreation->setFocus();
@@ -214,12 +261,15 @@ void MainWindow::configurerInterface()
     m_dateCreation->setMaximumDate(QDate::currentDate());
     m_dateCreation->setDate(QDate::currentDate());
     ui->labelDescription->setContentsMargins(0, 14, 0, 0);
+    connect(ui->btnParcourirVideo, &QPushButton::clicked, this, [this]() {
+        const QString chemin = QFileDialog::getOpenFileName(this, "Choisir une vidéo", "", "Vidéos (*.mp4 *.avi *.mov *.mkv *.wmv *.gif)");
+        if (!chemin.isEmpty()) m_editVideo->setText(chemin);
+    });
 
     iconeBouton(ui->btnReinitialiser, "reset", TEXTE, 18);
     iconeBouton(ui->btnAjouter, "plus", Qt::white, 20);
     iconeBouton(ui->btnModifier, "pencil", Qt::white, 20);
     iconeBouton(ui->btnSupprimer, "trash", TEXTE, 20);
-    iconeBouton(ui->btnAfficher, "eye", TEXTE, 20);
     m_boutonPlus->setIconSize(QSize(26, 26));
 
     m_apercu->boutonCrayon()->setToolTip("Modifier la vidéo de présentation");
@@ -230,10 +280,10 @@ void MainWindow::configurerInterface()
         });
 
     connect(ui->btnReinitialiser, &QPushButton::clicked, this, &MainWindow::onReinitialiser);
-    connect(ui->btnAjouter,   &QPushButton::clicked, this, &MainWindow::onAjouter);
-    connect(ui->btnModifier,  &QPushButton::clicked, this, &MainWindow::onModifier);
+    // Connexion des boutons aux véritables opérations CRUD Oracle.
+    connect(ui->btnAjouter, &QPushButton::clicked, this, &MainWindow::onAjouter);
+    connect(ui->btnModifier, &QPushButton::clicked, this, &MainWindow::onModifier);
     connect(ui->btnSupprimer, &QPushButton::clicked, this, &MainWindow::onSupprimer);
-    connect(ui->btnAfficher,  &QPushButton::clicked, this, &MainWindow::onAfficher);
     connect(m_boutonPlus,     &QToolButton::clicked, this, &MainWindow::onBoutonPlus);
 
     // L'image change dès que Type ou Statut change
@@ -323,6 +373,25 @@ void MainWindow::appliquerStyle()
         QComboBox[role="interne"]::drop-down, QComboBox[role="interneGras"]::drop-down, #comboTri::drop-down { border: none; width: 26px; }
         QComboBox::down-arrow { image: url(:/images/chevron.png); width: 14px; height: 14px; }
         QDateEdit[role="interne"]::drop-down { width: 0px; border: none; }
+        /* Champ vidéo : fond blanc, texte lisible */
+        #editVideo { background-color: #FFFFFF; color: #1B2333; border: 1px solid #E3DCD2;
+                     border-radius: 6px; padding: 5px 10px; selection-background-color: #DCE8F4;
+                     selection-color: #0B2D52; }
+        #editVideo:disabled { background-color: #F6F1EB; color: #536173; }
+        #btnParcourirVideo { background-color: #F1E8DD; color: #0B2D52;
+                            border: 1px solid #E3DCD2; border-radius: 7px;
+                            padding: 7px 14px; font-weight: 600; }
+        #btnParcourirVideo:hover { background-color: #E8D8C5; }
+
+        /* Dialogues de confirmation, alerte et succès : blanc et lisible */
+        QMessageBox { background-color: #FFFFFF; color: #1B2333; }
+        QMessageBox QLabel { background: transparent; color: #1B2333; font-size: 14px; }
+        QMessageBox QTextEdit, QMessageBox QTextBrowser { background: #FFFFFF; color: #1B2333; }
+        QMessageBox QPushButton { background-color: #F1E8DD; color: #102C48;
+                                 border: 1px solid #D9C9B5; border-radius: 5px;
+                                 min-width: 85px; min-height: 30px; padding: 4px 12px; }
+        QMessageBox QPushButton:hover { background-color: #E4D3BF; }
+
         #editDescription { border: 1px solid #E3DCD2; border-radius: 6px; padding: 6px 8px; font-size: 14px; background: #FFFFFF; }
         #editRechercheListe { border: 1px solid #E3DCD2; border-radius: 6px; padding-left: 4px; font-size: 14px; background: #FFFFFF; }
         #comboTri { border: 1px solid #E3DCD2; border-radius: 6px; padding-left: 12px; font-size: 15px; background: #FFFFFF; }
@@ -417,16 +486,16 @@ QPixmap MainWindow::apercuPour(const Maquette &m) const
 // ============================================================================
 //  CRUD
 // ============================================================================
-static Maquette lireFormulaire(QLineEdit *id, QLineEdit *nom, QComboBox *type,
-                               QDateEdit *date, QComboBox *statut, QTextEdit *desc)
+Maquette MainWindow::lireFormulaire() const
 {
-    return Maquette(id->text(), nom->text(), type->currentText(), date->date(),
-                    statut->currentText(), desc->toPlainText());
+    return Maquette(m_editId->text(), m_editNom->text(), m_comboType->currentText(), m_dateCreation->date(),
+                    m_comboStatut->currentText(), m_editDescription->toPlainText(), m_editVideo->text(), 0,
+                    m_comboTaille->currentText(), m_spinLargeur->value(), m_spinLongueur->value());
 }
 
 void MainWindow::onAjouter()
 {
-    Maquette m = lireFormulaire(m_editId, m_editNom, m_comboType, m_dateCreation, m_comboStatut, m_editDescription);
+    Maquette m = lireFormulaire();
     QString err;
     if (m.ajouter(err)) {
         QMessageBox::information(this, "Ajout", "Maquette " + m.getId() + " ajoutée avec succès.");
@@ -439,7 +508,7 @@ void MainWindow::onAjouter()
 
 void MainWindow::onModifier()
 {
-    Maquette m = lireFormulaire(m_editId, m_editNom, m_comboType, m_dateCreation, m_comboStatut, m_editDescription);
+    Maquette m = lireFormulaire();
     QString err;
     if (m.modifier(err)) {
         QMessageBox::information(this, "Modification", "Maquette " + m.getId() + " modifiée avec succès.");
@@ -481,36 +550,6 @@ void MainWindow::onSupprimer()
     onReinitialiser();
 }
 
-void MainWindow::onAfficher()
-{
-    const QString id = m_editId->text().trimmed().toUpper();
-    Maquette m;
-    if (id.isEmpty() || !Maquette::charger(id, m)) {
-        QMessageBox::warning(this, "Afficher", "Saisissez l'ID d'une maquette existante (ex : MQ001).");
-        return;
-    }
-    Maquette::incrementerVues(id);   // sert au « Top 5 des maquettes »
-    remplirFormulaire(id);
-    rafraichirStatistiques();
-
-    const int jours = m.getDateCreation().daysTo(QDate::currentDate());
-    const QString retard = m.estEnRetard(JOURS_MAX_VALIDATION)
-        ? "<p style='color:#B42318'><b>⚠ En retard de validation</b> (" + QString::number(jours) + " jours)</p>" : "";
-    QMessageBox box(this);
-    box.setWindowTitle("Maquette " + m.getId());
-    box.setTextFormat(Qt::RichText);
-    box.setIconPixmap(apercuPour(m).scaled(110, 150, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    box.setText("<h3>" + m.getNom().toHtmlEscaped() + "</h3>"
-                "<b>ID :</b> " + m.getId() + "<br>"
-                "<b>Type :</b> " + m.getType() + "<br>"
-                "<b>Date de création :</b> " + m.getDateCreation().toString("dd/MM/yyyy") + "<br>"
-                "<b>Statut :</b> " + m.getStatut() + "<br>"
-                "<b>Description :</b> " + m.getDescription().toHtmlEscaped() + "<br>"
-                "<b>Vidéo :</b> " + (m.getVideo().isEmpty() ? "aucune" : QFileInfo(m.getVideo()).fileName().toHtmlEscaped()) + "<br>"
-                "<b>Consultations :</b> " + QString::number(m.getVues() + 1) + retard);
-    box.exec();
-}
-
 void MainWindow::onReinitialiser()
 {
     m_table->clearSelection();
@@ -523,7 +562,11 @@ void MainWindow::onReinitialiser()
     m_dateCreation->setMaximumDate(QDate::currentDate());
     m_dateCreation->setDate(QDate::currentDate());
     m_comboStatut->setCurrentIndex(0);
+    m_comboTaille->setCurrentText("M");
+    m_spinLargeur->setValue(0);
+    m_spinLongueur->setValue(0);
     m_editDescription->clear();
+    m_editVideo->clear();
     m_editDescription->setPlaceholderText("Description de la maquette ...");
     mettreAJourBoutonVideo("");
     mettreAJourImageMaquette();
@@ -541,7 +584,11 @@ void MainWindow::remplirFormulaire(const QString &id)
     m_comboType->setCurrentText(m.getType());
     m_dateCreation->setDate(m.getDateCreation());
     m_comboStatut->setCurrentText(m.getStatut());
+    m_comboTaille->setCurrentText(m.getTaille());
+    m_spinLargeur->setValue(m.getLargeur());
+    m_spinLongueur->setValue(m.getLongueur());
     m_editDescription->setPlainText(m.getDescription());
+    m_editVideo->setText(m.getVideo());
     m_comboType->blockSignals(false);
     m_comboStatut->blockSignals(false);
 
@@ -670,7 +717,13 @@ void MainWindow::construirePagination(int nbPages)
 void MainWindow::onLigneCliquee(int ligne, int colonne)
 {
     if (colonne == 0) return;  // clic sur la case à cocher
-    if (QTableWidgetItem *it = m_table->item(ligne, 1)) remplirFormulaire(it->text());
+    if (QTableWidgetItem *it = m_table->item(ligne, 1)) {
+        remplirFormulaire(it->text());
+        // Statistiques : chaque consultation d'une maquette (clic dans la liste)
+        // compte pour le « Top 5 des maquettes les plus consultées »
+        Maquette::incrementerVues(it->text());
+        rafraichirStatistiques();
+    }
 }
 
 // ============================================================================
@@ -690,13 +743,16 @@ void MainWindow::onExporterPdf()
         "<p style='text-align:center'>Exporté le " + QDate::currentDate().toString("dd/MM/yyyy") + "</p>"
         "<table width='100%' border='1' cellspacing='0' cellpadding='6' style='border-collapse:collapse'>"
         "<tr style='background:#0B2A45; color:white'>"
-        "<th>ID</th><th>Nom</th><th>Type</th><th>Date de création</th><th>Statut</th><th>Description</th></tr>";
+        "<th>ID</th><th>Nom</th><th>Type</th><th>Taille</th><th>Largeur (cm)</th><th>Longueur (cm)</th>"
+        "<th>Date de création</th><th>Statut</th><th>Description</th></tr>";
     for (const Maquette &m : m_liste) {
         const bool retard = m.estEnRetard(JOURS_MAX_VALIDATION);
-        html += QString("<tr%1><td>%2</td><td>%3</td><td>%4</td><td>%5</td><td>%6</td><td>%7</td></tr>")
+        html += QString("<tr%1><td>%2</td><td>%3</td><td>%4</td><td>%5</td><td>%6</td><td>%7</td>")
                     .arg(retard ? " style='background:#FDEDEC'" : "",
-                         m.getId(), m.getNom().toHtmlEscaped(), m.getType(),
-                         m.getDateCreation().toString("dd/MM/yyyy"),
+                         m.getId(), m.getNom().toHtmlEscaped(), m.getType(), m.getTaille(),
+                         QString::number(m.getLargeur()), QString::number(m.getLongueur()));
+        html += QString("<td>%1</td><td>%2</td><td>%3</td></tr>")
+                    .arg(m.getDateCreation().toString("dd/MM/yyyy"),
                          m.getStatut() + (retard ? " (en retard)" : ""),
                          m.getDescription().toHtmlEscaped());
     }
