@@ -19,6 +19,7 @@ set(PROJECT_SOURCES
     statwidgets.h statwidgets.cpp
     icones.h icones.cpp
     widgets.h widgets.cpp
+    modulepage.h modulepage.cpp
     mainwindow.h mainwindow.cpp mainwindow.ui
     resources.qrc
 )
