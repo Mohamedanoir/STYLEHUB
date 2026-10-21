@@ -1,15 +1,30 @@
-QT += widgets webenginewidgets webchannel network printsupport
-CONFIG += c++17
-TEMPLATE = app
-TARGET = FashionovaOrders
+QT += core gui widgets network webenginewidgets printsupport sql
 
-SOURCES += \
-    main.cpp \
-    mainwindow.cpp
+CONFIG += c++17
+
+TARGET = FashionovaOrders
+TEMPLATE = app
 
 HEADERS += \
-    mainwindow.h
+    AnimatedBotButton.h \
+    commande.h \
+    connection.h \
+    mainwindow.h \
+    connection.h
 
-RESOURCES += resources.qrc
+SOURCES += \
+    commande.cpp \
+    connection.cpp \
+    main.cpp \
+    mainwindow.cpp \
+    connection.cpp
 
-win32:CONFIG += windows
+FORMS += \
+    mainwindow.ui
+
+RESOURCES += \
+    resources.qrc
+
+DISTFILES += \
+    api_key.txt \
+    README.txt

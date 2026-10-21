@@ -1,13 +1,18 @@
 <RCC>
     <qresource prefix="/">
-        <file>web/map.html</file>
         <file>images/sidebar.png</file>
         <file>images/image_tete.png</file>
+        <file>images/logo.png</file>
         <file>images/prod_veste.png</file>
+        <file>images/prod_sac.png</file>
+        <file>images/prod_lunette.png</file>
         <file>images/prod_bijoux.png</file>
         <file>images/prod_chaussure.png</file>
-        <file>images/prod_lunette.png</file>
         <file>images/prod_montre.png</file>
-        <file>images/prod_sac.png</file>
+        <file>images/robe_avant.png</file>
+        <file>images/jupe_avant.png</file>
+        <file>images/veste_avant.png</file>
+        <file>images/banniere.png</file>
+        <file>web/map.html</file>
     </qresource>
 </RCC>

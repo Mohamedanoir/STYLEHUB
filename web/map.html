@@ -9,10 +9,8 @@
     <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
     <style>
         html, body, #map { height: 100%; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
-
         .leaflet-routing-container { display: none !important; }
 
-        /* Style de la carte de légende flottante */
         .legend-card {
             background: rgba(255, 255, 255, 0.96);
             padding: 8px 12px;
@@ -37,7 +35,6 @@
             margin-bottom: 2px;
         }
 
-        /* Marqueur Pin d'emplacement sur la carte */
         .pin-marker {
             display: flex;
             justify-content: center;
@@ -49,14 +46,13 @@
 <body>
     <div id="map"></div>
     <script>
-        const map = L.map('map', { zoomControl: true }).setView([36.835, 10.19], 12);
+        const map = L.map('map', { zoomControl: true }).setView([35.8, 9.5], 7);
 
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '© OpenStreetMap'
         }).addTo(map);
 
-        // SVG exact du Pin d'emplacement stylisé (goutte + bordure blanche + anneau intérieur)
         function getPinSvg(color, width = 28, height = 36) {
             return `<svg width="${width}" height="${height}" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M14 0.5C6.54416 0.5 0.5 6.54416 0.5 14C0.5 23.5 14 35.5 14 35.5C14 35.5 27.5 23.5 27.5 14C27.5 6.54416 21.4558 0.5 14 0.5Z" fill="${color}" stroke="#FFFFFF" stroke-width="2"/>
@@ -75,7 +71,6 @@
             });
         }
 
-        // Marqueur Atelier Central (boîte bleu marine avec icône usine)
         const workshopPin = L.divIcon({
             className: 'pin-marker',
             html: `<div style="background:#082849; color:white; border-radius:8px; padding:4px 6px; border:2px solid white; box-shadow:0 3px 6px rgba(0,0,0,0.35); font-size:15px; display:flex; align-items:center; justify-content:center;">🏭</div>`,
@@ -83,28 +78,33 @@
             iconAnchor: [15, 15]
         });
 
-        // Atelier central
-        const workshop = L.latLng(36.8065, 10.1815);
-        L.marker(workshop, { icon: workshopPin }).addTo(map).bindPopup("<b>Atelier central</b><br>Point de départ des livraisons");
-
-        // Commandes clients avec leurs couleurs
-        const clients = [
-            { id: "CMD-001", name: "Sarah Ben Ali", status: "Livrée", lat: 36.8065, lon: 10.1815, col: "#10B981" },
-            { id: "CMD-002", name: "Yassine Trabelsi", status: "En cours", lat: 36.8665, lon: 10.1647, col: "#F59E0B" },
-            { id: "CMD-003", name: "Lina Khroub", status: "Prête en atelier", lat: 36.8450, lon: 10.2200, col: "#2563EB" },
-            { id: "CMD-005", name: "Maya Sassi", status: "Livrée", lat: 36.7750, lon: 10.2450, col: "#10B981" },
-            { id: "CMD-007", name: "Ramla Boussetta", status: "En cours", lat: 36.8330, lon: 10.1500, col: "#F59E0B" },
-            { id: "CMD-008", name: "Leila Srail", status: "Livrée", lat: 36.7350, lon: 10.3000, col: "#10B981" }
-        ];
+        const workshop = L.latLng(36.8333, 10.2333);
+        L.marker(workshop, { icon: workshopPin }).addTo(map).bindPopup("<b>Atelier central Fashionova</b><br>Les Berges du Lac, Tunis");
 
         let markers = {};
-        clients.forEach(c => {
-            const m = L.marker([c.lat, c.lon], { icon: createPin(c.col) }).addTo(map);
-            m.bindPopup(`<b>${c.id} — ${c.name}</b><br>Statut: ${c.status}`);
-            markers[c.id] = m;
-        });
 
-        // Légende flottante en bas à gauche avec les VRAIS pins d'emplacement
+        function setAllOrderMarkers(orders) {
+            for (let id in markers) {
+                if (markers.hasOwnProperty(id)) {
+                    map.removeLayer(markers[id]);
+                }
+            }
+            markers = {};
+
+            orders.forEach(c => {
+                let col = "#2563EB";
+                if (c.status.indexOf("Livr") !== -1) {
+                    col = "#10B981";
+                } else if (c.status.indexOf("cours") !== -1) {
+                    col = "#F59E0B";
+                }
+
+                const m = L.marker([parseFloat(c.lat), parseFloat(c.lon)], { icon: createPin(col) }).addTo(map);
+                m.bindPopup(`<b>${c.id} — ${c.name}</b><br>Statut: <b>${c.status}</b><br>Montant: ${c.amount}<br>Lieu: ${c.address}`);
+                markers[c.id] = m;
+            });
+        }
+
         const legend = L.control({ position: 'bottomleft' });
         legend.onAdd = function() {
             const div = L.DomUtil.create('div', 'legend-card');
@@ -133,7 +133,6 @@
 
         let routingControl = null;
 
-        // Tracé réel sur les rues avec OSRM
         function showRoute(destLat, destLon) {
             if (routingControl) {
                 map.removeControl(routingControl);

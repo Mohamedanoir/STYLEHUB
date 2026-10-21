@@ -1,10 +1,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <cstdio>
 #include <QMainWindow>
 #include <QTableWidget>
 #include <QLineEdit>
 #include <QComboBox>
+#include <QDateEdit>
 #include <QLabel>
 #include <QPushButton>
 #include <QStackedWidget>
@@ -16,6 +18,9 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QVariantAnimation>
+#include "commande.h"
+#include "AnimatedBotButton.h"
 
 class MainWindow : public QMainWindow
 {
@@ -29,29 +34,56 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
 
 private slots:
-    // Navigation & Commandes
     void onSidebarButtonClicked(int id);
     void toggleSortOrders();
     void selectOrder(int row);
     void generateInvoicePdf();
-    void openBarcodeScannerModal();
     void centerMap();
     void showSelectedRoute();
 
-    // Chatbot IA Flottant
+    void onBtnAddClicked();
+    void onBtnEditClicked();
+    void onBtnDeleteClicked();
+    void onSaveOrderForm();
+    void onResetOrderForm();
+
     void toggleChatWindow();
     void handleSendChatMessage();
     void onAiResponseReceived(QNetworkReply *reply);
 
+    // Synchronisation Oracle et animations
+    void actualiserTableau();
+    void onDonutAnimationStep(const QVariant &val);
+
+    // Recalcul automatique du délai estimé
+    void recalculerDelaiLivraisonEstime();
+
 private:
-    // Interface & Composants principaux
+    Commande cTmp;
+
+    // Formulaire de commande (côté gauche)
+    QFrame *formFrame;
+    QLineEdit *formIdEdit;
+    QLineEdit *formClientCodeEdit;
+    QLineEdit *formClientNameEdit;
+    QLineEdit *formAddressEdit;
+    QDateEdit *formDateEdit;
+    QComboBox *formStatusCombo;
+    QLineEdit *formAmountEdit;
+    QLabel *formPreviewImage;
+    QLabel *smartDeliveryDateLabel;
+    QPushButton *btnAdd; // Devient "💾 Enregistrer" en mode édition
+    bool isEditingMode;
+    int editingRow;
+
+    // Navigation & Table (côté droit)
     QStackedWidget *pageStack;
     QLineEdit *searchEdit;
     QTableWidget *ordersTable;
     QComboBox *statusCombo;
     QComboBox *periodCombo;
 
-    // Panneau de détails
+    // Panneau Détails
     QLabel *selectedOrderLabel;
     QLabel *detailProductImage;
     QLabel *detailClient;
@@ -63,37 +95,56 @@ private:
     QLabel *costLabel;
     QLabel *delayLabel;
 
-    // Carte & Données
+    // Carte & Donut animé
     QWebEngineView *mapView;
     QLabel *donutLabel;
+    QVBoxLayout *legendLayout;
+    QVariantAnimation *donutAnim;
+    int animCountLivree;
+    int animCountEnCours;
+    int animCountPrete;
+    int animTotalCmd;
+
+    // Labels KPI dynamiques
+    QLabel *kpiTotalVal;
+    QLabel *kpiEnAttenteVal;
+    QLabel *kpiExpedieesVal;
+    QLabel *kpiAtelierVal;
+    QLabel *kpiMontantTotalVal;
+
     bool sortAscending;
     int currentRowSelected;
     QString selectedClientLat;
     QString selectedClientLon;
 
-    // Chatbot Flottant
-    QPushButton *chatFloatingBtn;
+    // Chatbot IA (Bouton flottant animé)
+    AnimatedBotButton *chatFloatingBtn;
     QFrame *chatWindow;
     QWidget *chatMessagesArea;
     QVBoxLayout *chatMessagesLayout;
     QLineEdit *chatInput;
 
-    // Infrastructure Agent IA (Groq Cloud / Llama 3.1)
     QNetworkAccessManager *networkManager;
     QJsonArray conversationHistory;
     QString getApiKey();
 
-    // Méthodes d'initialisation UI
+    // Géocodage et calcul multimodal
+    QPair<double, double> geolocaliserVille(const QString &nomVille);
+    void calculerTempsTrajet(double latDest, double lonDest);
+    void rafraichirMarqueursCarte();
+    void recalculerStatistiquesEtDonut();
+    void dessinerDonut(double progress);
+
+    // Constructeurs d'interface
     QWidget* makeSidebar();
     QWidget* makeHeader();
-    QWidget* makeKpis();
-    QWidget* makeOrdersPanel();
+    QWidget* makeOrdersAndFormCombinedPanel();
     QWidget* makeDetailsPanel();
     QWidget* makeMapPanel();
+    QWidget* makeKpis();
     QWidget* makeBottomPanel();
     QWidget* createEmptyPage(const QString &title);
 
-    // Méthodes Métier & IA
     void setupOrders();
     void updateDetails(int row);
     void sendMapCommand(const QString &js);
