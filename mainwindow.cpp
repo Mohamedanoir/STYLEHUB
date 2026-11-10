@@ -10,7 +10,6 @@
 #include <QButtonGroup>
 #include <QComboBox>
 #include <QDateEdit>
-#include <QDoubleSpinBox>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -20,6 +19,9 @@
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QImageReader>
+#include <QIntValidator>
+#include <QRegularExpressionValidator>
+#include <QToolTip>
 #include <QEvent>
 #include <QKeyEvent>
 #include <QPainter>
@@ -54,12 +56,42 @@ static const QColor NAVY("#0B2A45");
 static const QColor TEXTE("#1B2333");
 static const QColor OR("#C59A62");
 
+// Date "vide" : le champ Date de création affiche un blanc tant que l'utilisateur
+// n'a pas choisi de date (QDateEdit ne peut pas être réellement vide).
+static const QDate DATE_VIDE(1900, 1, 1);
+
 // Lit l'image n° "index" d'un GIF (pour les miniatures)
 static QPixmap imageDuGif(const QString &chemin, int index)
 {
     QImageReader r(chemin);
     if (index > 0) r.jumpToImage(qMin(index, qMax(0, r.imageCount() - 1)));
     return QPixmap::fromImage(r.read());
+}
+
+// Type de maquette -> nom des fichiers images (":/images/<nom>_avant.png" et "<nom>_validee.gif")
+// Affiche un message d'erreur rouge sous le champ pendant 2 secondes
+static void erreurSaisie(QLineEdit *edit, const QString &msg)
+{
+    QToolTip::showText(edit->mapToGlobal(QPoint(0, edit->height())), msg, edit, {}, 2500);
+}
+
+static QString nomFichierType(const QString &type)
+{
+    const QString t = type.trimmed().toLower();
+    if (t.contains("robe"))     return "robe";
+    if (t.contains("veste"))    return "veste";
+    if (t.contains("jupe"))     return "jupe";
+    if (t.contains("pantalon")) return "pantalon";
+    if (t.contains("shirt"))    return "t_shirt";
+    if (t.contains("chapeau"))  return "chapeau";
+    if (t.contains("chemise"))  return "chemise_homme";
+    return "";
+}
+
+// Valeur d'une liste déroulante : "" si « Aucun » (1re ligne) est sélectionné
+static QString valeurChoisie(const QComboBox *combo)
+{
+    return combo->currentIndex() > 0 ? combo->currentText() : QString();
 }
 
 // ============================================================================
@@ -69,23 +101,41 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 {
     ui->setupUi(this);          // construit l'interface dessinée dans mainwindow.ui
 
-    // Images chargées une seule fois
-    for (const QString &n : {QString("robe"), QString("veste"), QString("jupe")}) {
-        const QString gif = ":/images/" + n + "_validee.gif";
-        m_imgAvant[n]    = QPixmap(":/images/" + n + "_avant.png");
-        m_imgValidee[n]  = imageDuGif(gif, 0);
-        m_imgValidee2[n] = imageDuGif(gif, QImageReader(gif).imageCount() / 2);
+    // Images chargées une seule fois (un type sans image affiche « Aperçu non disponible »).
+    // Pour ajouter les images d'un nouveau type : images/<nom>_avant.png + images/<nom>_validee.gif
+    // dans resources.qrc (ex : pantalon_avant.png, pantalon_validee.gif).
+    for (const QString &type : Maquette::types()) {
+        const QString n = nomFichierType(type);
+        if (n.isEmpty()) continue;
+
+        // "avant" : cherche d'abord .png, puis .gif
+        QString avant;
+        if      (QFileInfo::exists(":/images/" + n + "_avant.png")) avant = ":/images/" + n + "_avant.png";
+        else if (QFileInfo::exists(":/images/" + n + "_avant.gif")) avant = ":/images/" + n + "_avant.gif";
+        if (avant.isEmpty()) continue;
+        m_imgAvant[n] = QPixmap(avant);
+
+        // "validee" : cherche d'abord .gif, puis .png
+        QString validee;
+        if      (QFileInfo::exists(":/images/" + n + "_validee.gif")) validee = ":/images/" + n + "_validee.gif";
+        else if (QFileInfo::exists(":/images/" + n + "_validee.png")) validee = ":/images/" + n + "_validee.png";
+        if (!validee.isEmpty()) {
+            m_imgValidee[n]  = imageDuGif(validee, 0);
+            m_imgValidee2[n] = imageDuGif(validee, QImageReader(validee).imageCount() / 2);
+        }
     }
 
     configurerInterface();
     appliquerStyle();
 
     rafraichirListe();
-    remplirFormulaire("MQ001");
+    // À l'ouverture : formulaire vide (champs texte vides, listes sur « Aucun », ID vide)
+    onReinitialiser();
+    afficherPage(nbPages());   // tableau sur la dernière page (les dernières maquettes ajoutées)
 
     // Métier innovant 2 : vérification automatique des retards (toutes les 60 s)
     m_timerRetard = new QTimer(this);
-    connect(m_timerRetard, &QTimer::timeout, this, &MainWindow::verifierRetards);
+    connect(m_timerRetard, &QTimer::timeout, this, &MainWindow::rafraichirListe);   // relit Oracle + retards
     m_timerRetard->start(60 * 1000);
     QTimer::singleShot(900, this, &MainWindow::verifierRetards);
 }
@@ -127,8 +177,8 @@ void MainWindow::configurerInterface()
     m_pastilleStatut   = ui->pastilleStatut;
     m_fondPastille     = ui->fondPastille;
     m_comboTaille      = ui->comboTaille;
-    m_spinLargeur      = ui->spinLargeur;
-    m_spinLongueur     = ui->spinLongueur;
+    m_editLargeur      = ui->editLargeur;
+    m_editLongueur     = ui->editLongueur;
     m_editDescription  = ui->editDescription;
     m_editVideo        = ui->editVideo;
     m_apercu           = ui->apercu;
@@ -168,7 +218,14 @@ void MainWindow::configurerInterface()
         nav[i]->setFixedHeight(40);
         m_navGroupe->addButton(nav[i], i);
     }
-    connect(m_navGroupe, &QButtonGroup::idClicked, this, [this](int id) { m_pages->setCurrentIndex(id); if (id == 3) rafraichirStatistiques(); });
+    connect(m_navGroupe, &QButtonGroup::idClicked, this, [this](int id) {
+        m_pages->setCurrentIndex(id);
+        if (id == 3) {                       // on entre dans l'interface Maquettes
+            rafraichirListe();
+            onReinitialiser();               // formulaire vide (ID vide, listes sur « Aucun »)
+            afficherPage(nbPages());         // tableau sur la dernière page
+        }
+    });
     ui->btnMaquettes->setChecked(true);
     m_pages->setCurrentIndex(3);
 
@@ -252,14 +309,82 @@ void MainWindow::configurerInterface()
     ui->iconeTaille->setPixmap(Icones::pixmap("taille", TEXTE, 20));
     ui->iconeLargeur->setPixmap(Icones::pixmap("largeur", TEXTE, 20));
     ui->iconeLongueur->setPixmap(Icones::pixmap("longueur", TEXTE, 20));
+
+    // ID_MAQUETTE : automatique. Le champ n'est pas modifiable au clavier (pas de doublon) ;
+    // un clic dessus donne le prochain ID libre (MAX(ID_MAQUETTE) + 1) -> voir eventFilter().
+    m_editId->setValidator(new QIntValidator(1, 999999999, m_editId));
+    m_editId->setReadOnly(true);
+    m_editId->setCursor(Qt::PointingHandCursor);
+    m_editId->setPlaceholderText("Cliquez ici : ID automatique");
+    m_editId->setToolTip("Cliquez pour obtenir automatiquement le prochain ID (le dernier ID + 1)");
+    m_editId->installEventFilter(this);
+
+    // NOM_MAQUETTE : lettres et espaces uniquement (pas de chiffres)
+    m_editNom->setValidator(new QRegularExpressionValidator(
+        QRegularExpression("^[\\p{L} ]*$"), m_editNom));
+    connect(m_editNom, &QLineEdit::inputRejected, this, [this]() {
+        erreurSaisie(m_editNom, "⚠ Le nom accepte uniquement des lettres — pas de chiffres !");
+    });
+
+    // LARGEUR et LONGUEUR : nombres réels uniquement (float) — accepte "45", "45.5", "45,5"
+    QRegularExpression reMesure("^\\d{1,3}([.,]\\d{1,2})?$");
+    m_editLargeur->setValidator(new QRegularExpressionValidator(reMesure, m_editLargeur));
+    connect(m_editLargeur, &QLineEdit::inputRejected, this, [this]() {
+        erreurSaisie(m_editLargeur, "⚠ Largeur : saisissez un nombre réel (ex : 45.5) — pas de texte !");
+    });
+    m_editLongueur->setValidator(new QRegularExpressionValidator(reMesure, m_editLongueur));
+    connect(m_editLongueur, &QLineEdit::inputRejected, this, [this]() {
+        erreurSaisie(m_editLongueur, "⚠ Longueur : saisissez un nombre réel (ex : 120.0) — pas de texte !");
+    });
+
+    // ---- Attributs qui changent selon le type (mesures en cm, nombre réel)
+    // Chaque mesure a sa ligne dans mainwindow.ui : label<Nom>, champ<Nom>, icone<Nom>, edit<Nom>
+    // (ex : TOUR_TAILLE -> labelTourTaille, champTourTaille, iconeTourTaille, editTourTaille).
+    // Seules les lignes du type choisi sont affichées (voir mettreAJourMesures()).
+    for (const MesureType &mesure : Maquette::mesuresPossibles()) {
+        QString nom;                                         // TOUR_TAILLE -> TourTaille
+        for (const QString &mot : mesure.colonne.split('_'))
+            nom += mot.left(1).toUpper() + mot.mid(1).toLower();
+
+        QLineEdit *edit = findChild<QLineEdit *>("edit" + nom);
+        QWidget *label  = findChild<QWidget *>("label" + nom);
+        QWidget *champ  = findChild<QWidget *>("champ" + nom);
+        if (!edit || !label || !champ) continue;
+        if (QLabel *icone = findChild<QLabel *>("icone" + nom))
+            icone->setPixmap(Icones::pixmap("mesure", TEXTE, 20));
+
+        edit->setPlaceholderText("en cm, ex : " + mesure.exemple);
+        // Validation float : accepte "45", "45.5", "45,5" — bloque le texte
+        edit->setValidator(new QRegularExpressionValidator(
+            QRegularExpression("^\\d{1,3}([.,]\\d{1,2})?$"), edit));
+        const QString libelle = mesure.libelle;
+        const QString exemple = mesure.exemple;
+        connect(edit, &QLineEdit::inputRejected, this, [edit, libelle, exemple]() {
+            erreurSaisie(edit, "⚠ " + libelle + " : saisissez un nombre réel (ex : " + exemple + ") — pas de texte !");
+        });
+        if (!Maquette::colonnePresente(mesure.colonne)) {   // colonne non créée dans Oracle
+            edit->setEnabled(false);
+            edit->setPlaceholderText("colonne absente (voir maquettes_oracle.sql)");
+        }
+        m_editMesures[mesure.colonne]   = edit;
+        m_lignesMesures[mesure.colonne] = {label, champ};
+    }
+
+    // Date de création : vide au départ ; un clic (ou le bouton calendrier) met la date du jour
+    m_dateCreation->setMinimumDate(DATE_VIDE);
+    m_dateCreation->setSpecialValueText(" ");
+    m_dateCreation->setMaximumDate(QDate::currentDate());
+    m_dateCreation->setDate(DATE_VIDE);
+    m_dateCreation->installEventFilter(this);
+    if (QLineEdit *zoneDate = m_dateCreation->findChild<QLineEdit *>())   // zone de texte interne
+        zoneDate->installEventFilter(this);
     iconeBouton(ui->btnCalendrier, "calendar", TEXTE, 20);
     connect(ui->btnCalendrier, &QToolButton::clicked, this, [this]() {
+        if (m_dateCreation->date() == DATE_VIDE) m_dateCreation->setDate(QDate::currentDate());
         m_dateCreation->setFocus();
         QKeyEvent ev(QEvent::KeyPress, Qt::Key_F4, Qt::NoModifier);
         QApplication::sendEvent(m_dateCreation, &ev);
     });
-    m_dateCreation->setMaximumDate(QDate::currentDate());
-    m_dateCreation->setDate(QDate::currentDate());
     ui->labelDescription->setContentsMargins(0, 14, 0, 0);
     connect(ui->btnParcourirVideo, &QPushButton::clicked, this, [this]() {
         const QString chemin = QFileDialog::getOpenFileName(this, "Choisir une vidéo", "", "Vidéos (*.mp4 *.avi *.mov *.mkv *.wmv *.gif)");
@@ -288,6 +413,8 @@ void MainWindow::configurerInterface()
 
     // L'image change dès que Type ou Statut change
     connect(m_comboType,   &QComboBox::currentTextChanged, this, &MainWindow::mettreAJourImageMaquette);
+    // Les attributs (mesures) changent dès que le Type change
+    connect(m_comboType,   &QComboBox::currentTextChanged, this, &MainWindow::mettreAJourMesures);
     connect(m_comboStatut, &QComboBox::currentTextChanged, this, &MainWindow::mettreAJourImageMaquette);
 
     // ---- Liste
@@ -314,6 +441,27 @@ void MainWindow::configurerInterface()
 
     connect(m_rechercheListe, &QLineEdit::textChanged, this, [this]() { m_pageCourante = 1; rafraichirListe(); });
     connect(m_comboTri, &QComboBox::currentIndexChanged, this, [this]() { m_pageCourante = 1; rafraichirListe(); });
+
+    // DESCRIPTION : bloquer les chiffres en temps réel + message d'erreur
+    connect(m_editDescription, &QTextEdit::textChanged, this, [this]() {
+        QString texte = m_editDescription->toPlainText();
+        QString filtre = texte;
+        filtre.remove(QRegularExpression("\\d"));   // supprime tous les chiffres
+        if (filtre != texte) {
+            int pos = m_editDescription->textCursor().position() - (texte.length() - filtre.length());
+            m_editDescription->blockSignals(true);
+            m_editDescription->setPlainText(filtre);
+            QTextCursor c = m_editDescription->textCursor();
+            c.setPosition(qMax(0, pos));
+            m_editDescription->setTextCursor(c);
+            m_editDescription->blockSignals(false);
+            // Message d'erreur sous le champ
+            QToolTip::showText(
+                m_editDescription->mapToGlobal(QPoint(0, m_editDescription->height())),
+                "⚠ La description accepte uniquement des lettres — pas de chiffres !",
+                m_editDescription, {}, 2500);
+        }
+    });
     connect(m_table, &QTableWidget::cellClicked, this, &MainWindow::onLigneCliquee);
     connect(m_rechercheGlobale, &QLineEdit::textChanged, m_rechercheListe, &QLineEdit::setText);
     connect(ui->btnExporterPdf, &QPushButton::clicked, this, &MainWindow::onExporterPdf);
@@ -437,70 +585,146 @@ void MainWindow::appliquerStyle()
 }
 
 // ============================================================================
-//  IMAGE : Type + Statut -> image fixe (En cours / En attente) ou GIF (Validée)
+//  IMAGE : Type + Statut -> image fixe (En cours) ou GIF (Validée)
 // ============================================================================
 QString MainWindow::nomImage(const QString &type) const
 {
-    const QString t = type.trimmed().toLower();
-    if (t.contains("robe"))  return "robe";
-    if (t.contains("veste")) return "veste";
-    if (t.contains("jupe"))  return "jupe";
-    return "";
+    const QString n = nomFichierType(type);
+    return m_imgAvant.contains(n) ? n : QString();   // "" si ce type n'a pas d'image
 }
 
 void MainWindow::mettreAJourImageMaquette()
 {
-    const QString nom = nomImage(m_comboType->currentText());
-    const QString statut = m_comboStatut->currentText();
+    const QString type = valeurChoisie(m_comboType);
+    const QString statut = valeurChoisie(m_comboStatut);
     const bool estValidee = statut.startsWith("Valid");
 
     // Pastille du statut
-    QString point = "#10A84E", fond = "#E6F4EA";               // En cours
-    if (statut == "En attente") { point = "#E8853D"; fond = "#FCEEDF"; }
-    else if (estValidee)        { point = "#2F6FB3"; fond = "#E4EEF8"; }
+    QString point = "#B0B7C3", fond = "#F1F2F4";                    // Aucun
+    if (statut == "En cours") { point = "#10A84E"; fond = "#E6F4EA"; }
+    else if (estValidee)      { point = "#2F6FB3"; fond = "#E4EEF8"; }
     m_pastilleStatut->setStyleSheet("background:" + point + "; border-radius:7px;");
     m_fondPastille->setStyleSheet("background:" + fond + "; border-top-left-radius:5px; border-bottom-left-radius:5px;");
 
+    const QString nom = nomImage(type);
     if (nom.isEmpty()) {
-        m_apercu->afficherVide("Pas d'image");
+        m_apercu->afficherVide(type.isEmpty() ? "Choisissez un type" : "Aperçu non disponible pour ce type");
         for (Miniature *mi : m_mini) mi->setImage(QPixmap());
         return;
     }
 
-    if (estValidee) m_apercu->afficherAnimation(":/images/" + nom + "_validee.gif");   // GIF qui bouge
-    else            m_apercu->afficherImage(m_imgAvant[nom]);                         // image fixe
+    // Cherche le fichier validée : d'abord .gif (animé), sinon .png (fixe)
+    QString fichierValidee;
+    if      (QFileInfo::exists(":/images/" + nom + "_validee.gif")) fichierValidee = ":/images/" + nom + "_validee.gif";
+    else if (QFileInfo::exists(":/images/" + nom + "_validee.png")) fichierValidee = ":/images/" + nom + "_validee.png";
 
-    m_mini[0]->setImage(m_imgAvant[nom]);
-    m_mini[1]->setImage(m_imgValidee[nom]);
-    m_mini[2]->setImage(m_imgValidee2[nom]);
+    if (estValidee && !fichierValidee.isEmpty())
+        m_apercu->afficherAnimation(fichierValidee);   // validée : gif animé ou image png
+    else
+        m_apercu->afficherImage(m_imgAvant[nom]);       // avant/aucun : image fixe
+
+    m_mini[0]->setImage(m_imgAvant.value(nom));
+    m_mini[1]->setImage(m_imgValidee.value(nom));
+    m_mini[2]->setImage(m_imgValidee2.value(nom));
 }
 
 QPixmap MainWindow::apercuPour(const Maquette &m) const
 {
     const QString n = nomImage(m.getType());
-    if (!n.isEmpty())
-        return m.getStatut().startsWith("Valid") ? m_imgValidee.value(n) : m_imgAvant.value(n);
+    if (!n.isEmpty()) {
+        const QPixmap validee = m_imgValidee.value(n);
+        return m.getStatut().startsWith("Valid") && !validee.isNull() ? validee : m_imgAvant.value(n);
+    }
     return QPixmap();
 }
 
 // ============================================================================
 //  CRUD
 // ============================================================================
+// Sélectionne un texte dans une liste déroulante (sans tenir compte des majuscules).
+// Valeur vide -> « Aucun ». Si la valeur venant d'Oracle n'existe pas dans la liste,
+// elle est ajoutée pour ne pas modifier la donnée sans le vouloir.
+static void choisirTexte(QComboBox *combo, const QString &valeur)
+{
+    if (valeur.trimmed().isEmpty()) {
+        combo->setCurrentIndex(0);
+        return;
+    }
+    int i = combo->findText(valeur.trimmed(), Qt::MatchFixedString);
+    if (i < 0) {
+        combo->addItem(valeur.trimmed());
+        i = combo->count() - 1;
+    }
+    combo->setCurrentIndex(i);
+}
+
+// Statut : la liste ne propose que « En cours » et « Validée ».
+// Un ancien statut (ex : « En attente ») reste affiché dans le tableau,
+// mais le formulaire montre « Aucun » : il faut choisir En cours ou Validée pour modifier.
+static void choisirStatut(QComboBox *combo, const QString &valeur)
+{
+    const QString v = valeur.trimmed().toLower();
+    int i = 0;
+    if (v.startsWith("valid"))  i = combo->findText("Validée");
+    else if (v == "en cours")   i = combo->findText("En cours");
+    combo->setCurrentIndex(qMax(0, i));
+}
+
 Maquette MainWindow::lireFormulaire() const
 {
-    return Maquette(m_editId->text(), m_editNom->text(), m_comboType->currentText(), m_dateCreation->date(),
-                    m_comboStatut->currentText(), m_editDescription->toPlainText(), m_editVideo->text(), 0,
-                    m_comboTaille->currentText(), m_spinLargeur->value(), m_spinLongueur->value());
+    // ID_EMPLOYE n'est pas affiché : il est rempli automatiquement par Maquette::ajouter()
+    // « Aucun » dans une liste -> valeur vide (refusée par le contrôle de saisie)
+    const QDate date = m_dateCreation->date() == DATE_VIDE ? QDate() : m_dateCreation->date();
+    return Maquette(m_editId->text(), m_editNom->text(), valeurChoisie(m_comboType), date,
+                    valeurChoisie(m_comboStatut), m_editDescription->toPlainText(), m_editVideo->text(), 0,
+                    valeurChoisie(m_comboTaille),
+                    Maquette::lireMesure(m_editLargeur->text()), Maquette::lireMesure(m_editLongueur->text()),
+                    lireMesuresDuType());
+}
+
+// Mesures du type choisi (seulement les champs affichés), ex : Jupe -> tour de taille + tour de hanches
+QMap<QString, double> MainWindow::lireMesuresDuType() const
+{
+    QMap<QString, double> mesures;
+    for (const QString &colonne : Maquette::mesuresDuType(valeurChoisie(m_comboType)))
+        if (QLineEdit *e = m_editMesures.value(colonne))
+            mesures[colonne] = Maquette::lireMesure(e->text());
+    return mesures;
+}
+
+// ============================================================================
+//  ATTRIBUTS SELON LE TYPE : n'affiche que les mesures du type choisi
+//  (ex : Jupe -> Tour de taille, Tour de hanches ; Chapeau -> Tour de tête)
+// ============================================================================
+void MainWindow::mettreAJourMesures()
+{
+    const QStringList duType = Maquette::mesuresDuType(valeurChoisie(m_comboType));
+    for (auto it = m_lignesMesures.constBegin(); it != m_lignesMesures.constEnd(); ++it)
+        for (QWidget *w : it.value())
+            w->setVisible(duType.contains(it.key()));
+}
+
+// Prochain ID libre (dernier ID de MAQUETTES + 1) dans le champ ID
+void MainWindow::genererId()
+{
+    m_table->clearSelection();
+    m_editId->setText(QString::number(Maquette::prochainId()));
+    mettreAJourBoutonVideo("");   // nouvel ID : pas encore de vidéo enregistrée
 }
 
 void MainWindow::onAjouter()
 {
+    // ID vide : il est donné automatiquement (comme un clic sur le champ ID)
+    if (m_editId->text().trimmed().isEmpty())
+        genererId();
+
     Maquette m = lireFormulaire();
     QString err;
     if (m.ajouter(err)) {
         QMessageBox::information(this, "Ajout", "Maquette " + m.getId() + " ajoutée avec succès.");
         rafraichirListe();
-        remplirFormulaire(m.getId());
+        onReinitialiser();                          // formulaire vide pour la prochaine maquette
+        afficherMaquetteDansTableau(m.getId());     // on voit la nouvelle ligne dans le tableau
     } else {
         QMessageBox::warning(this, "Ajout impossible", err);
     }
@@ -508,12 +732,19 @@ void MainWindow::onAjouter()
 
 void MainWindow::onModifier()
 {
+    if (m_editId->text().trimmed().isEmpty()) {
+        QMessageBox::warning(this, "Modification impossible",
+                             "Sélectionnez d'abord une maquette dans la liste (clic sur une ligne).");
+        return;
+    }
+
     Maquette m = lireFormulaire();
     QString err;
     if (m.modifier(err)) {
         QMessageBox::information(this, "Modification", "Maquette " + m.getId() + " modifiée avec succès.");
         rafraichirListe();
         remplirFormulaire(m.getId());
+        afficherMaquetteDansTableau(m.getId());     // on voit la ligne modifiée dans le tableau
     } else {
         QMessageBox::warning(this, "Modification impossible", err);
     }
@@ -529,9 +760,9 @@ void MainWindow::onSupprimer()
 
     // 2) Sinon : l'ID du formulaire
     if (ids.isEmpty()) {
-        const QString id = m_editId->text().trimmed().toUpper();
+        const QString id = m_editId->text().trimmed();
         if (id.isEmpty() || !Maquette::existe(id)) {
-            QMessageBox::warning(this, "Suppression", "Cochez des maquettes dans la liste ou saisissez un ID existant.");
+            QMessageBox::warning(this, "Suppression", "Cochez des maquettes dans la liste ou sélectionnez une maquette (clic sur une ligne).");
             return;
         }
         ids << id;
@@ -542,34 +773,51 @@ void MainWindow::onSupprimer()
         return;
 
     int n = 0;
-    for (const QString &id : ids) n += Maquette::supprimer(id) ? 1 : 0;
-    QMessageBox::information(this, "Suppression", QString("%1 maquette(s) supprimée(s).").arg(n));
+    QStringList erreurs;
+    for (const QString &id : ids) {
+        QString err;
+        if (Maquette::supprimer(id, &err)) ++n;
+        else erreurs << id + " : " + err;
+    }
+
+    QString msg = QString("%1 maquette(s) supprimée(s) avec succès.").arg(n);
+    if (!erreurs.isEmpty()) {
+        msg += "\n\nNon supprimée(s) :\n" + erreurs.join("\n");
+        QMessageBox::warning(this, "Suppression", msg);
+    } else {
+        QMessageBox::information(this, "Suppression", msg);
+    }
+
     m_toutCoche = false;
     m_table->horizontalHeaderItem(0)->setIcon(Icones::icone("box", QColor("#5B6472"), 18));
     rafraichirListe();
     onReinitialiser();
+    afficherPage(nbPages());                        // dernière page du tableau
 }
 
 void MainWindow::onReinitialiser()
 {
+    // Formulaire vide : champs texte vides, listes déroulantes sur « Aucun »,
+    // ID vide (un clic sur le champ ID donne le prochain ID automatiquement)
     m_table->clearSelection();
-    int n = 1;
-    while (Maquette::existe(QString("MQ%1").arg(n, 3, 10, QChar('0')))) ++n;
-    m_editId->setText(QString("MQ%1").arg(n, 3, 10, QChar('0')));
+    m_editId->clear();
     m_editNom->clear();
     m_editNom->setPlaceholderText("Nom de la maquette");
     m_comboType->setCurrentIndex(0);
     m_dateCreation->setMaximumDate(QDate::currentDate());
-    m_dateCreation->setDate(QDate::currentDate());
+    m_dateCreation->setDate(DATE_VIDE);
     m_comboStatut->setCurrentIndex(0);
-    m_comboTaille->setCurrentText("M");
-    m_spinLargeur->setValue(0);
-    m_spinLongueur->setValue(0);
+    m_comboTaille->setCurrentIndex(0);
+    m_editLargeur->clear();
+    m_editLongueur->clear();
+    for (QLineEdit *e : m_editMesures)
+        e->clear();
     m_editDescription->clear();
     m_editVideo->clear();
     m_editDescription->setPlaceholderText("Description de la maquette ...");
     mettreAJourBoutonVideo("");
     mettreAJourImageMaquette();
+    mettreAJourMesures();          // Type « Aucun » : seulement Largeur et Longueur
 }
 
 void MainWindow::remplirFormulaire(const QString &id)
@@ -581,19 +829,24 @@ void MainWindow::remplirFormulaire(const QString &id)
     m_comboStatut->blockSignals(true);
     m_editId->setText(m.getId());
     m_editNom->setText(m.getNom());
-    m_comboType->setCurrentText(m.getType());
-    m_dateCreation->setDate(m.getDateCreation());
-    m_comboStatut->setCurrentText(m.getStatut());
-    m_comboTaille->setCurrentText(m.getTaille());
-    m_spinLargeur->setValue(m.getLargeur());
-    m_spinLongueur->setValue(m.getLongueur());
+    choisirTexte(m_comboType, m.getType());
+    m_dateCreation->setMaximumDate(QDate::currentDate());
+    m_dateCreation->setDate(m.getDateCreation().isValid() ? m.getDateCreation() : DATE_VIDE);
+    choisirStatut(m_comboStatut, m.getStatut());
+    choisirTexte(m_comboTaille, m.getTaille());
+    m_editLargeur->setText(Maquette::texteMesure(m.getLargeur()));
+    m_editLongueur->setText(Maquette::texteMesure(m.getLongueur()));
+    for (auto it = m_editMesures.constBegin(); it != m_editMesures.constEnd(); ++it)
+        it.value()->setText(Maquette::texteMesure(m.getMesure(it.key())));
     m_editDescription->setPlainText(m.getDescription());
     m_editVideo->setText(m.getVideo());
+
     m_comboType->blockSignals(false);
     m_comboStatut->blockSignals(false);
 
     mettreAJourBoutonVideo(m.getVideo());
     mettreAJourImageMaquette();
+    mettreAJourMesures();          // attributs du type de cette maquette
 }
 
 // ============================================================================
@@ -602,11 +855,29 @@ void MainWindow::remplirFormulaire(const QString &id)
 void MainWindow::rafraichirListe()
 {
     m_liste = Maquette::afficher(m_rechercheListe->text(), m_comboTri->currentData().toString());
-    const int nbPages = qMax(1, int((m_liste.size() + LIGNES_PAR_PAGE - 1) / LIGNES_PAR_PAGE));
-    m_pageCourante = qBound(1, m_pageCourante, nbPages);
+    m_pageCourante = qBound(1, m_pageCourante, nbPages());
     afficherPage(m_pageCourante);
     rafraichirStatistiques();
     verifierRetards();
+}
+
+int MainWindow::nbPages() const
+{
+    return qMax(1, int((m_liste.size() + LIGNES_PAR_PAGE - 1) / LIGNES_PAR_PAGE));
+}
+
+// Affiche la page qui contient la maquette "id" et surligne sa ligne
+// (sinon : dernière page, là où arrivent les nouvelles maquettes)
+void MainWindow::afficherMaquetteDansTableau(const QString &id)
+{
+    for (int i = 0; i < m_liste.size(); ++i) {
+        if (m_liste[i].getId() == id) {
+            afficherPage(i / LIGNES_PAR_PAGE + 1);
+            m_table->selectRow(i % LIGNES_PAR_PAGE);
+            return;
+        }
+    }
+    afficherPage(nbPages());
 }
 
 void MainWindow::afficherPage(int page)
@@ -614,6 +885,17 @@ void MainWindow::afficherPage(int page)
     m_pageCourante = page;
     const int debut = (page - 1) * LIGNES_PAR_PAGE;
     const int fin = qMin(int(m_liste.size()), debut + LIGNES_PAR_PAGE);
+
+    // Mémoriser les cases cochées (la liste peut être rechargée depuis Oracle)
+    QSet<QString> coches;
+    for (int r = 0; r < m_table->rowCount(); ++r)
+        if (m_table->item(r, 0) && m_table->item(r, 1) && m_table->item(r, 0)->checkState() == Qt::Checked)
+            coches.insert(m_table->item(r, 1)->text());
+
+    // Mémoriser la ligne surlignée (ex : maquette qu'on vient d'ajouter)
+    QString idSurligne;
+    const QModelIndexList lignesChoisies = m_table->selectionModel()->selectedRows(1);
+    if (!lignesChoisies.isEmpty()) idSurligne = lignesChoisies.first().data().toString();
 
     m_table->setRowCount(0);
     for (int i = debut; i < fin; ++i) {
@@ -624,7 +906,7 @@ void MainWindow::afficherPage(int page)
 
         QTableWidgetItem *coche = new QTableWidgetItem;
         coche->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsSelectable);
-        coche->setCheckState(m_toutCoche ? Qt::Checked : Qt::Unchecked);
+        coche->setCheckState(m_toutCoche || coches.contains(m.getId()) ? Qt::Checked : Qt::Unchecked);
         m_table->setItem(r, 0, coche);
         m_table->setItem(r, 1, new QTableWidgetItem(m.getId()));
         m_table->setItem(r, 2, new QTableWidgetItem(m.getNom()));
@@ -668,8 +950,10 @@ void MainWindow::afficherPage(int page)
             }
         }
     }
-    const int nbPages = qMax(1, int((m_liste.size() + LIGNES_PAR_PAGE - 1) / LIGNES_PAR_PAGE));
-    construirePagination(nbPages);
+    for (int r = 0; r < m_table->rowCount(); ++r)
+        if (!idSurligne.isEmpty() && m_table->item(r, 1)->text() == idSurligne)
+            m_table->selectRow(r);
+    construirePagination(nbPages());
 }
 
 void MainWindow::construirePagination(int nbPages)
@@ -744,13 +1028,19 @@ void MainWindow::onExporterPdf()
         "<table width='100%' border='1' cellspacing='0' cellpadding='6' style='border-collapse:collapse'>"
         "<tr style='background:#0B2A45; color:white'>"
         "<th>ID</th><th>Nom</th><th>Type</th><th>Taille</th><th>Largeur (cm)</th><th>Longueur (cm)</th>"
+        "<th>Mesures selon le type (cm)</th>"
         "<th>Date de création</th><th>Statut</th><th>Description</th></tr>";
     for (const Maquette &m : m_liste) {
         const bool retard = m.estEnRetard(JOURS_MAX_VALIDATION);
         html += QString("<tr%1><td>%2</td><td>%3</td><td>%4</td><td>%5</td><td>%6</td><td>%7</td>")
                     .arg(retard ? " style='background:#FDEDEC'" : "",
                          m.getId(), m.getNom().toHtmlEscaped(), m.getType(), m.getTaille(),
-                         QString::number(m.getLargeur()), QString::number(m.getLongueur()));
+                         Maquette::texteMesure(m.getLargeur()), Maquette::texteMesure(m.getLongueur()));
+        QStringList mesures;
+        for (const QString &colonne : Maquette::mesuresDuType(m.getType()))
+            if (m.getMesure(colonne) >= 0)
+                mesures << Maquette::mesure(colonne).libelle + " : " + Maquette::texteMesure(m.getMesure(colonne));
+        html += "<td>" + mesures.join("<br>").toHtmlEscaped().replace("&lt;br&gt;", "<br>") + "</td>";
         html += QString("<td>%1</td><td>%2</td><td>%3</td></tr>")
                     .arg(m.getDateCreation().toString("dd/MM/yyyy"),
                          m.getStatut() + (retard ? " (en retard)" : ""),
@@ -769,7 +1059,7 @@ void MainWindow::onExporterPdf()
     doc.setPageSize(writer.pageLayout().paintRectPixels(writer.resolution()).size());
     doc.print(&writer);
 
-    QMessageBox::information(this, "Export PDF", "Le PDF a été créé :\n" + chemin);
+    QMessageBox::information(this, "Export PDF", "PDF créé avec succès :\n" + chemin);
     QDesktopServices::openUrl(QUrl::fromLocalFile(chemin));
 }
 
@@ -778,10 +1068,17 @@ void MainWindow::onExporterPdf()
 // ============================================================================
 void MainWindow::rafraichirStatistiques()
 {
+    // Répartition par type : seulement les types qui ont au moins une maquette
+    static const QMap<QString, QString> pluriel = {
+        {"Robe", "Robes"}, {"Veste", "Vestes"}, {"Jupe", "Jupes"}, {"Pantalon", "Pantalons"},
+        {"T-shirt", "T-shirts"}, {"Chapeau", "Chapeaux"}, {"Chemise homme", "Chemises homme"}};
     QList<QPair<QString, int>> parType;
     const QMap<QString, int> t = Maquette::statsParType();
-    for (const QString &nom : {QString("Robe"), QString("Veste"), QString("Jupe")})
-        parType.append({nom + "s", t.value(nom)});
+    for (const QString &nom : Maquette::types())
+        if (t.value(nom) > 0) parType.append({pluriel.value(nom, nom), t.value(nom)});
+    for (auto it = t.constBegin(); it != t.constEnd(); ++it)        // autre type venant d'Oracle
+        if (!it.key().trimmed().isEmpty() && !Maquette::types().contains(it.key()) && it.value() > 0)
+            parType.append({it.key(), it.value()});
     m_donut->setDonnees(parType);
     m_courbe->setDonnees(Maquette::statsParMois(6));
     m_barres->setDonnees(Maquette::top5Consultees());
@@ -800,7 +1097,7 @@ void MainWindow::mettreAJourBoutonVideo(const QString &video)
 
 void MainWindow::onChoisirVideo()
 {
-    const QString id = m_editId->text().trimmed().toUpper();
+    const QString id = m_editId->text().trimmed();
     if (!Maquette::existe(id)) {
         QMessageBox::warning(this, "Vidéo", "Enregistrez d'abord la maquette (bouton Ajouter), puis associez une vidéo.");
         return;
@@ -809,15 +1106,19 @@ void MainWindow::onChoisirVideo()
                                                    "Vidéos (*.mp4 *.avi *.mov *.mkv *.wmv *.gif)");
     if (f.isEmpty()) return;
     if (Maquette::enregistrerVideo(id, f)) {
+        m_editVideo->setText(f);
         mettreAJourBoutonVideo(f);
-        QMessageBox::information(this, "Vidéo", "Vidéo associée à la maquette " + id + ".");
+        QMessageBox::information(this, "Vidéo", "Vidéo associée à la maquette " + id + " avec succès.");
+    } else {
+        QMessageBox::warning(this, "Vidéo", "Impossible d'enregistrer la vidéo "
+                                            "(chemin de plus de 255 caractères ?).");
     }
 }
 
 void MainWindow::onBoutonPlus()
 {
     Maquette m;
-    if (!Maquette::charger(m_editId->text().trimmed().toUpper(), m) || m.getVideo().isEmpty()) {
+    if (!Maquette::charger(m_editId->text().trimmed(), m) || m.getVideo().isEmpty()) {
         onChoisirVideo();
         return;
     }
@@ -917,8 +1218,37 @@ void MainWindow::placerImageSidebar()
     m_imageSidebar->show();
 }
 
+// ============================================================================
+//  Rechargement automatique depuis Oracle : chaque fois que l'on revient sur la
+//  fenêtre Qt (ex : après un INSERT + COMMIT dans SQL Developer), la liste,
+//  les statistiques et les alertes sont relues dans la table MAQUETTES.
+// ============================================================================
+void MainWindow::changeEvent(QEvent *ev)
+{
+    QMainWindow::changeEvent(ev);
+    if (ev->type() == QEvent::ActivationChange && isActiveWindow() && m_table)
+        rafraichirListe();
+}
+
 bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
 {
+    // Clic sur le champ ID -> prochain ID automatique (jamais deux fois le même ID)
+    if (obj == m_editId && ev->type() == QEvent::MouseButtonPress)
+        genererId();
+
+    // Clic / Tab dans la date encore vide -> date du jour (point de départ pour la modifier)
+    if (m_dateCreation && m_dateCreation->date() == DATE_VIDE) {
+        const bool clicDate = ev->type() == QEvent::MouseButtonPress
+                              && obj->parent() == m_dateCreation && qobject_cast<QLineEdit *>(obj);
+        bool tabDate = false;
+        if (obj == m_dateCreation && ev->type() == QEvent::FocusIn) {
+            const Qt::FocusReason r = static_cast<QFocusEvent *>(ev)->reason();
+            tabDate = r == Qt::MouseFocusReason || r == Qt::TabFocusReason || r == Qt::BacktabFocusReason;
+        }
+        if (clicDate || tabDate)
+            m_dateCreation->setDate(QDate::currentDate());
+    }
+
     if (obj == m_sidebar && (ev->type() == QEvent::Resize || ev->type() == QEvent::Show
                              || ev->type() == QEvent::LayoutRequest))
         placerImageSidebar();

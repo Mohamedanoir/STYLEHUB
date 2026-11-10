@@ -904,6 +904,11 @@ Ce module est géré par un autre membre de l'équipe.</string>
                                 </property>
                                 <item>
                                  <property name="text">
+                                  <string>Aucun</string>
+                                 </property>
+                                </item>
+                                <item>
+                                 <property name="text">
                                   <string>Robe</string>
                                  </property>
                                 </item>
@@ -915,6 +920,26 @@ Ce module est géré par un autre membre de l'équipe.</string>
                                 <item>
                                  <property name="text">
                                   <string>Jupe</string>
+                                 </property>
+                                </item>
+                                <item>
+                                 <property name="text">
+                                  <string>Pantalon</string>
+                                 </property>
+                                </item>
+                                <item>
+                                 <property name="text">
+                                  <string>T-shirt</string>
+                                 </property>
+                                </item>
+                                <item>
+                                 <property name="text">
+                                  <string>Chapeau</string>
+                                 </property>
+                                </item>
+                                <item>
+                                 <property name="text">
+                                  <string>Chemise homme</string>
                                  </property>
                                 </item>
                                </widget>
@@ -1093,12 +1118,12 @@ Ce module est géré par un autre membre de l'équipe.</string>
                                 </property>
                                 <item>
                                  <property name="text">
-                                  <string>En cours</string>
+                                  <string>Aucun</string>
                                  </property>
                                 </item>
                                 <item>
                                  <property name="text">
-                                  <string>En attente</string>
+                                  <string>En cours</string>
                                  </property>
                                 </item>
                                 <item>
@@ -1178,6 +1203,11 @@ Ce module est géré par un autre membre de l'équipe.</string>
                                 <property name="role" stdset="0">
                                  <string>interne</string>
                                 </property>
+                                <item>
+                                 <property name="text">
+                                  <string>Aucun</string>
+                                 </property>
+                                </item>
                                 <item>
                                  <property name="text">
                                   <string>XS</string>
@@ -1271,27 +1301,15 @@ Ce module est géré par un autre membre de l'équipe.</string>
                                </widget>
                               </item>
                               <item>
-                               <widget class="QDoubleSpinBox" name="spinLargeur">
+                               <widget class="QLineEdit" name="editLargeur">
                                 <property name="role" stdset="0">
                                  <string>interne</string>
                                 </property>
-                                <property name="buttonSymbols">
-                                 <enum>QAbstractSpinBox::NoButtons</enum>
+                                <property name="maxLength">
+                                 <number>10</number>
                                 </property>
-                                <property name="decimals">
-                                 <number>1</number>
-                                </property>
-                                <property name="minimum">
-                                 <double>0.000000000000000</double>
-                                </property>
-                                <property name="maximum">
-                                 <double>300.000000000000000</double>
-                                </property>
-                                <property name="singleStep">
-                                 <double>0.500000000000000</double>
-                                </property>
-                                <property name="suffix">
-                                 <string> cm</string>
+                                <property name="placeholderText">
+                                 <string>en cm, ex : 45.5</string>
                                 </property>
                                </widget>
                               </item>
@@ -1361,34 +1379,646 @@ Ce module est géré par un autre membre de l'équipe.</string>
                                </widget>
                               </item>
                               <item>
-                               <widget class="QDoubleSpinBox" name="spinLongueur">
+                               <widget class="QLineEdit" name="editLongueur">
                                 <property name="role" stdset="0">
                                  <string>interne</string>
                                 </property>
-                                <property name="buttonSymbols">
-                                 <enum>QAbstractSpinBox::NoButtons</enum>
+                                <property name="maxLength">
+                                 <number>10</number>
                                 </property>
-                                <property name="decimals">
-                                 <number>1</number>
-                                </property>
-                                <property name="minimum">
-                                 <double>0.000000000000000</double>
-                                </property>
-                                <property name="maximum">
-                                 <double>300.000000000000000</double>
-                                </property>
-                                <property name="singleStep">
-                                 <double>0.500000000000000</double>
-                                </property>
-                                <property name="suffix">
-                                 <string> cm</string>
+                                <property name="placeholderText">
+                                 <string>en cm, ex : 45.5</string>
                                 </property>
                                </widget>
                               </item>
                              </layout>
                             </widget>
                            </item>
-                           <item row="8" column="0" alignment="Qt::AlignTop">
+                           <item row="8" column="0">
+                            <widget class="QLabel" name="labelTourCou">
+                             <property name="text">
+                              <string>Tour de cou</string>
+                             </property>
+                             <property name="role" stdset="0">
+                              <string>labelChamp</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item row="8" column="1">
+                            <widget class="QFrame" name="champTourCou">
+                             <property name="role" stdset="0">
+                              <string>champ</string>
+                             </property>
+                             <property name="minimumSize">
+                              <size>
+                               <width>0</width>
+                               <height>36</height>
+                              </size>
+                             </property>
+                             <property name="maximumSize">
+                              <size>
+                               <width>16777215</width>
+                               <height>36</height>
+                              </size>
+                             </property>
+                             <layout class="QHBoxLayout" name="layout_champTourCou">
+                              <property name="leftMargin">
+                               <number>10</number>
+                              </property>
+                              <property name="topMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="rightMargin">
+                               <number>4</number>
+                              </property>
+                              <property name="bottomMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="spacing">
+                               <number>10</number>
+                              </property>
+                              <item>
+                               <widget class="QLabel" name="iconeTourCou">
+                                <property name="text">
+                                 <string/>
+                                </property>
+                                <property name="minimumSize">
+                                 <size>
+                                  <width>22</width>
+                                  <height>0</height>
+                                 </size>
+                                </property>
+                                <property name="maximumSize">
+                                 <size>
+                                  <width>22</width>
+                                  <height>16777215</height>
+                                 </size>
+                                </property>
+                               </widget>
+                              </item>
+                              <item>
+                               <widget class="QLineEdit" name="editTourCou">
+                                <property name="role" stdset="0">
+                                 <string>interne</string>
+                                </property>
+                                <property name="maxLength">
+                                 <number>10</number>
+                                </property>
+                                <property name="placeholderText">
+                                 <string>en cm (optionnel), ex : 92.5</string>
+                                </property>
+                               </widget>
+                              </item>
+                             </layout>
+                            </widget>
+                           </item>
+                           <item row="9" column="0">
+                            <widget class="QLabel" name="labelTourPoitrine">
+                             <property name="text">
+                              <string>Tour de poitrine</string>
+                             </property>
+                             <property name="role" stdset="0">
+                              <string>labelChamp</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item row="9" column="1">
+                            <widget class="QFrame" name="champTourPoitrine">
+                             <property name="role" stdset="0">
+                              <string>champ</string>
+                             </property>
+                             <property name="minimumSize">
+                              <size>
+                               <width>0</width>
+                               <height>36</height>
+                              </size>
+                             </property>
+                             <property name="maximumSize">
+                              <size>
+                               <width>16777215</width>
+                               <height>36</height>
+                              </size>
+                             </property>
+                             <layout class="QHBoxLayout" name="layout_champTourPoitrine">
+                              <property name="leftMargin">
+                               <number>10</number>
+                              </property>
+                              <property name="topMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="rightMargin">
+                               <number>4</number>
+                              </property>
+                              <property name="bottomMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="spacing">
+                               <number>10</number>
+                              </property>
+                              <item>
+                               <widget class="QLabel" name="iconeTourPoitrine">
+                                <property name="text">
+                                 <string/>
+                                </property>
+                                <property name="minimumSize">
+                                 <size>
+                                  <width>22</width>
+                                  <height>0</height>
+                                 </size>
+                                </property>
+                                <property name="maximumSize">
+                                 <size>
+                                  <width>22</width>
+                                  <height>16777215</height>
+                                 </size>
+                                </property>
+                               </widget>
+                              </item>
+                              <item>
+                               <widget class="QLineEdit" name="editTourPoitrine">
+                                <property name="role" stdset="0">
+                                 <string>interne</string>
+                                </property>
+                                <property name="maxLength">
+                                 <number>10</number>
+                                </property>
+                                <property name="placeholderText">
+                                 <string>en cm (optionnel), ex : 92.5</string>
+                                </property>
+                               </widget>
+                              </item>
+                             </layout>
+                            </widget>
+                           </item>
+                           <item row="10" column="0">
+                            <widget class="QLabel" name="labelTourTaille">
+                             <property name="text">
+                              <string>Tour de taille</string>
+                             </property>
+                             <property name="role" stdset="0">
+                              <string>labelChamp</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item row="10" column="1">
+                            <widget class="QFrame" name="champTourTaille">
+                             <property name="role" stdset="0">
+                              <string>champ</string>
+                             </property>
+                             <property name="minimumSize">
+                              <size>
+                               <width>0</width>
+                               <height>36</height>
+                              </size>
+                             </property>
+                             <property name="maximumSize">
+                              <size>
+                               <width>16777215</width>
+                               <height>36</height>
+                              </size>
+                             </property>
+                             <layout class="QHBoxLayout" name="layout_champTourTaille">
+                              <property name="leftMargin">
+                               <number>10</number>
+                              </property>
+                              <property name="topMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="rightMargin">
+                               <number>4</number>
+                              </property>
+                              <property name="bottomMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="spacing">
+                               <number>10</number>
+                              </property>
+                              <item>
+                               <widget class="QLabel" name="iconeTourTaille">
+                                <property name="text">
+                                 <string/>
+                                </property>
+                                <property name="minimumSize">
+                                 <size>
+                                  <width>22</width>
+                                  <height>0</height>
+                                 </size>
+                                </property>
+                                <property name="maximumSize">
+                                 <size>
+                                  <width>22</width>
+                                  <height>16777215</height>
+                                 </size>
+                                </property>
+                               </widget>
+                              </item>
+                              <item>
+                               <widget class="QLineEdit" name="editTourTaille">
+                                <property name="role" stdset="0">
+                                 <string>interne</string>
+                                </property>
+                                <property name="maxLength">
+                                 <number>10</number>
+                                </property>
+                                <property name="placeholderText">
+                                 <string>en cm (optionnel), ex : 92.5</string>
+                                </property>
+                               </widget>
+                              </item>
+                             </layout>
+                            </widget>
+                           </item>
+                           <item row="11" column="0">
+                            <widget class="QLabel" name="labelTourHanches">
+                             <property name="text">
+                              <string>Tour de hanches</string>
+                             </property>
+                             <property name="role" stdset="0">
+                              <string>labelChamp</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item row="11" column="1">
+                            <widget class="QFrame" name="champTourHanches">
+                             <property name="role" stdset="0">
+                              <string>champ</string>
+                             </property>
+                             <property name="minimumSize">
+                              <size>
+                               <width>0</width>
+                               <height>36</height>
+                              </size>
+                             </property>
+                             <property name="maximumSize">
+                              <size>
+                               <width>16777215</width>
+                               <height>36</height>
+                              </size>
+                             </property>
+                             <layout class="QHBoxLayout" name="layout_champTourHanches">
+                              <property name="leftMargin">
+                               <number>10</number>
+                              </property>
+                              <property name="topMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="rightMargin">
+                               <number>4</number>
+                              </property>
+                              <property name="bottomMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="spacing">
+                               <number>10</number>
+                              </property>
+                              <item>
+                               <widget class="QLabel" name="iconeTourHanches">
+                                <property name="text">
+                                 <string/>
+                                </property>
+                                <property name="minimumSize">
+                                 <size>
+                                  <width>22</width>
+                                  <height>0</height>
+                                 </size>
+                                </property>
+                                <property name="maximumSize">
+                                 <size>
+                                  <width>22</width>
+                                  <height>16777215</height>
+                                 </size>
+                                </property>
+                               </widget>
+                              </item>
+                              <item>
+                               <widget class="QLineEdit" name="editTourHanches">
+                                <property name="role" stdset="0">
+                                 <string>interne</string>
+                                </property>
+                                <property name="maxLength">
+                                 <number>10</number>
+                                </property>
+                                <property name="placeholderText">
+                                 <string>en cm (optionnel), ex : 92.5</string>
+                                </property>
+                               </widget>
+                              </item>
+                             </layout>
+                            </widget>
+                           </item>
+                           <item row="12" column="0">
+                            <widget class="QLabel" name="labelLargeurEpaules">
+                             <property name="text">
+                              <string>Largeur d'épaules</string>
+                             </property>
+                             <property name="role" stdset="0">
+                              <string>labelChamp</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item row="12" column="1">
+                            <widget class="QFrame" name="champLargeurEpaules">
+                             <property name="role" stdset="0">
+                              <string>champ</string>
+                             </property>
+                             <property name="minimumSize">
+                              <size>
+                               <width>0</width>
+                               <height>36</height>
+                              </size>
+                             </property>
+                             <property name="maximumSize">
+                              <size>
+                               <width>16777215</width>
+                               <height>36</height>
+                              </size>
+                             </property>
+                             <layout class="QHBoxLayout" name="layout_champLargeurEpaules">
+                              <property name="leftMargin">
+                               <number>10</number>
+                              </property>
+                              <property name="topMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="rightMargin">
+                               <number>4</number>
+                              </property>
+                              <property name="bottomMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="spacing">
+                               <number>10</number>
+                              </property>
+                              <item>
+                               <widget class="QLabel" name="iconeLargeurEpaules">
+                                <property name="text">
+                                 <string/>
+                                </property>
+                                <property name="minimumSize">
+                                 <size>
+                                  <width>22</width>
+                                  <height>0</height>
+                                 </size>
+                                </property>
+                                <property name="maximumSize">
+                                 <size>
+                                  <width>22</width>
+                                  <height>16777215</height>
+                                 </size>
+                                </property>
+                               </widget>
+                              </item>
+                              <item>
+                               <widget class="QLineEdit" name="editLargeurEpaules">
+                                <property name="role" stdset="0">
+                                 <string>interne</string>
+                                </property>
+                                <property name="maxLength">
+                                 <number>10</number>
+                                </property>
+                                <property name="placeholderText">
+                                 <string>en cm (optionnel), ex : 92.5</string>
+                                </property>
+                               </widget>
+                              </item>
+                             </layout>
+                            </widget>
+                           </item>
+                           <item row="13" column="0">
+                            <widget class="QLabel" name="labelLongueurManche">
+                             <property name="text">
+                              <string>Longueur de manche</string>
+                             </property>
+                             <property name="role" stdset="0">
+                              <string>labelChamp</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item row="13" column="1">
+                            <widget class="QFrame" name="champLongueurManche">
+                             <property name="role" stdset="0">
+                              <string>champ</string>
+                             </property>
+                             <property name="minimumSize">
+                              <size>
+                               <width>0</width>
+                               <height>36</height>
+                              </size>
+                             </property>
+                             <property name="maximumSize">
+                              <size>
+                               <width>16777215</width>
+                               <height>36</height>
+                              </size>
+                             </property>
+                             <layout class="QHBoxLayout" name="layout_champLongueurManche">
+                              <property name="leftMargin">
+                               <number>10</number>
+                              </property>
+                              <property name="topMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="rightMargin">
+                               <number>4</number>
+                              </property>
+                              <property name="bottomMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="spacing">
+                               <number>10</number>
+                              </property>
+                              <item>
+                               <widget class="QLabel" name="iconeLongueurManche">
+                                <property name="text">
+                                 <string/>
+                                </property>
+                                <property name="minimumSize">
+                                 <size>
+                                  <width>22</width>
+                                  <height>0</height>
+                                 </size>
+                                </property>
+                                <property name="maximumSize">
+                                 <size>
+                                  <width>22</width>
+                                  <height>16777215</height>
+                                 </size>
+                                </property>
+                               </widget>
+                              </item>
+                              <item>
+                               <widget class="QLineEdit" name="editLongueurManche">
+                                <property name="role" stdset="0">
+                                 <string>interne</string>
+                                </property>
+                                <property name="maxLength">
+                                 <number>10</number>
+                                </property>
+                                <property name="placeholderText">
+                                 <string>en cm (optionnel), ex : 92.5</string>
+                                </property>
+                               </widget>
+                              </item>
+                             </layout>
+                            </widget>
+                           </item>
+                           <item row="14" column="0">
+                            <widget class="QLabel" name="labelEntrejambe">
+                             <property name="text">
+                              <string>Entrejambe</string>
+                             </property>
+                             <property name="role" stdset="0">
+                              <string>labelChamp</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item row="14" column="1">
+                            <widget class="QFrame" name="champEntrejambe">
+                             <property name="role" stdset="0">
+                              <string>champ</string>
+                             </property>
+                             <property name="minimumSize">
+                              <size>
+                               <width>0</width>
+                               <height>36</height>
+                              </size>
+                             </property>
+                             <property name="maximumSize">
+                              <size>
+                               <width>16777215</width>
+                               <height>36</height>
+                              </size>
+                             </property>
+                             <layout class="QHBoxLayout" name="layout_champEntrejambe">
+                              <property name="leftMargin">
+                               <number>10</number>
+                              </property>
+                              <property name="topMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="rightMargin">
+                               <number>4</number>
+                              </property>
+                              <property name="bottomMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="spacing">
+                               <number>10</number>
+                              </property>
+                              <item>
+                               <widget class="QLabel" name="iconeEntrejambe">
+                                <property name="text">
+                                 <string/>
+                                </property>
+                                <property name="minimumSize">
+                                 <size>
+                                  <width>22</width>
+                                  <height>0</height>
+                                 </size>
+                                </property>
+                                <property name="maximumSize">
+                                 <size>
+                                  <width>22</width>
+                                  <height>16777215</height>
+                                 </size>
+                                </property>
+                               </widget>
+                              </item>
+                              <item>
+                               <widget class="QLineEdit" name="editEntrejambe">
+                                <property name="role" stdset="0">
+                                 <string>interne</string>
+                                </property>
+                                <property name="maxLength">
+                                 <number>10</number>
+                                </property>
+                                <property name="placeholderText">
+                                 <string>en cm (optionnel), ex : 92.5</string>
+                                </property>
+                               </widget>
+                              </item>
+                             </layout>
+                            </widget>
+                           </item>
+                           <item row="15" column="0">
+                            <widget class="QLabel" name="labelTourTete">
+                             <property name="text">
+                              <string>Tour de tête</string>
+                             </property>
+                             <property name="role" stdset="0">
+                              <string>labelChamp</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item row="15" column="1">
+                            <widget class="QFrame" name="champTourTete">
+                             <property name="role" stdset="0">
+                              <string>champ</string>
+                             </property>
+                             <property name="minimumSize">
+                              <size>
+                               <width>0</width>
+                               <height>36</height>
+                              </size>
+                             </property>
+                             <property name="maximumSize">
+                              <size>
+                               <width>16777215</width>
+                               <height>36</height>
+                              </size>
+                             </property>
+                             <layout class="QHBoxLayout" name="layout_champTourTete">
+                              <property name="leftMargin">
+                               <number>10</number>
+                              </property>
+                              <property name="topMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="rightMargin">
+                               <number>4</number>
+                              </property>
+                              <property name="bottomMargin">
+                               <number>0</number>
+                              </property>
+                              <property name="spacing">
+                               <number>10</number>
+                              </property>
+                              <item>
+                               <widget class="QLabel" name="iconeTourTete">
+                                <property name="text">
+                                 <string/>
+                                </property>
+                                <property name="minimumSize">
+                                 <size>
+                                  <width>22</width>
+                                  <height>0</height>
+                                 </size>
+                                </property>
+                                <property name="maximumSize">
+                                 <size>
+                                  <width>22</width>
+                                  <height>16777215</height>
+                                 </size>
+                                </property>
+                               </widget>
+                              </item>
+                              <item>
+                               <widget class="QLineEdit" name="editTourTete">
+                                <property name="role" stdset="0">
+                                 <string>interne</string>
+                                </property>
+                                <property name="maxLength">
+                                 <number>10</number>
+                                </property>
+                                <property name="placeholderText">
+                                 <string>en cm (optionnel), ex : 92.5</string>
+                                </property>
+                               </widget>
+                              </item>
+                             </layout>
+                            </widget>
+                           </item>
+                           <item row="16" column="0" alignment="Qt::AlignTop">
                             <widget class="QLabel" name="labelDescription">
                              <property name="text">
                               <string>Description</string>
@@ -1398,7 +2028,7 @@ Ce module est géré par un autre membre de l'équipe.</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="8" column="1">
+                           <item row="16" column="1">
                             <widget class="QTextEdit" name="editDescription">
                              <property name="minimumSize">
                               <size>
@@ -1417,13 +2047,13 @@ Ce module est géré par un autre membre de l'équipe.</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="9" column="0" alignment="Qt::AlignVCenter">
+                           <item row="17" column="0" alignment="Qt::AlignVCenter">
                             <widget class="QLabel" name="labelVideo">
                              <property name="text"><string>Vidéo</string></property>
                              <property name="role" stdset="0"><string>labelChamp</string></property>
                             </widget>
                            </item>
-                           <item row="9" column="1">
+                           <item row="17" column="1">
                             <layout class="QHBoxLayout" name="layoutVideo">
                              <property name="spacing"><number>18</number></property>
                              <property name="leftMargin"><number>0</number></property><property name="topMargin"><number>4</number></property><property name="rightMargin"><number>0</number></property><property name="bottomMargin"><number>4</number></property>

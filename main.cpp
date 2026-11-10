@@ -9,10 +9,10 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     a.setStyle("Fusion");
 
-    Connexion c;
-    if (!c.creerConnexion()) {
-        QMessageBox::critical(nullptr, "Base de données",
-                              "Impossible d'ouvrir la base de données.\n" + c.derniereErreur());
+    // Connexion Oracle (Singleton)
+    if (!Connexion::instance().creerConnexion()) {
+        QMessageBox::critical(nullptr, "Base de données Oracle",
+                              Connexion::instance().derniereErreur());
         return -1;
     }
 

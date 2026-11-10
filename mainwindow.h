@@ -10,7 +10,6 @@
 class QButtonGroup;
 class QComboBox;
 class QDateEdit;
-class QDoubleSpinBox;
 class QFrame;
 class QHBoxLayout;
 class QLabel;
@@ -40,6 +39,7 @@ public:
 
 protected:
     bool eventFilter(QObject *obj, QEvent *ev) override;
+    void changeEvent(QEvent *ev) override;   // retour sur la fenêtre -> recharger depuis Oracle
 
 private slots:
     // CRUD
@@ -55,6 +55,8 @@ private slots:
 
     // Image qui change selon Type + Statut
     void mettreAJourImageMaquette();
+    // Attributs (mesures) qui changent selon le Type
+    void mettreAJourMesures();
 
     // Métiers innovants
     void onChoisirVideo();
@@ -72,12 +74,16 @@ private:
     void appliquerStyle();
 
     void afficherPage(int page);
+    int  nbPages() const;                       // nombre de pages du tableau
+    void afficherMaquetteDansTableau(const QString &id);   // page de la maquette + ligne surlignée
     void construirePagination(int nbPages);
     void rafraichirStatistiques();
     void remplirFormulaire(const QString &id);
     Maquette lireFormulaire() const;    // lit tous les champs du formulaire
+    QMap<QString, double> lireMesuresDuType() const;   // mesures affichées pour le type choisi
+    void genererId();                   // champ ID = prochain ID libre (dernier ID + 1)
     void mettreAJourBoutonVideo(const QString &video);
-    QString nomImage(const QString &type) const;   // "robe", "veste", "jupe" ou ""
+    QString nomImage(const QString &type) const;   // "robe", "veste", "jupe"... ou "" (pas d'image)
     QPixmap apercuPour(const Maquette &m) const;
 
     Ui::MainWindow *ui;
@@ -97,9 +103,12 @@ private:
     QComboBox   *m_comboStatut = nullptr;
     QLabel      *m_pastilleStatut = nullptr;
     QFrame      *m_fondPastille = nullptr;
-    QComboBox      *m_comboTaille = nullptr;
-    QDoubleSpinBox *m_spinLargeur = nullptr;
-    QDoubleSpinBox *m_spinLongueur = nullptr;
+    QComboBox   *m_comboTaille = nullptr;
+    QLineEdit   *m_editLargeur = nullptr;        // mesures en cm (nombre réel), tous les types
+    QLineEdit   *m_editLongueur = nullptr;
+    // Mesures qui changent selon le type : colonne Oracle -> champ / ligne (label + champ)
+    QMap<QString, QLineEdit *>      m_editMesures;
+    QMap<QString, QList<QWidget *>> m_lignesMesures;
     QTextEdit   *m_editDescription = nullptr;
     QLineEdit   *m_editVideo = nullptr;
 
@@ -123,9 +132,9 @@ private:
     QTimer *m_timerRetard = nullptr;
     bool    m_alerteDejaAffichee = false;
 
-    QMap<QString, QPixmap> m_imgAvant;     // robe/veste/jupe -> toile
-    QMap<QString, QPixmap> m_imgValidee;   // robe/veste/jupe -> 1re image du GIF
-    QMap<QString, QPixmap> m_imgValidee2;  // robe/veste/jupe -> image du milieu du GIF
+    QMap<QString, QPixmap> m_imgAvant;     // type (robe, veste...) -> toile
+    QMap<QString, QPixmap> m_imgValidee;   // type -> 1re image du GIF
+    QMap<QString, QPixmap> m_imgValidee2;  // type -> image du milieu du GIF
 
     static constexpr int JOURS_MAX_VALIDATION = 7;
     static constexpr int LIGNES_PAR_PAGE = 5;

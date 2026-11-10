@@ -181,6 +181,15 @@ void dessiner(QPainter &p, const QString &nom, const QColor &c)
             p.drawLine(QPointF(x, 8), QPointF(x, k % 2 == 0 ? 12.5 : 10.5));
         }
     }
+    else if (nom == "mesure") {   // mètre ruban (tours de poitrine / taille / hanches)
+        p.setPen(QPen(c, 1.7, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        p.drawEllipse(QPointF(10, 11), 6.5, 6.5);
+        p.drawEllipse(QPointF(10, 11), 2, 2);
+        p.drawLine(QPointF(10, 17.5), QPointF(21, 17.5));
+        p.drawLine(QPointF(21, 17.5), QPointF(21, 14.5));
+        p.drawLine(QPointF(14, 17.5), QPointF(14, 19.5));
+        p.drawLine(QPointF(17.5, 17.5), QPointF(17.5, 19.5));
+    }
     else if (nom == "calendar") {
         p.setPen(QPen(c, 1.7, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
         p.drawRoundedRect(QRectF(3.5, 5, 17, 15.5), 2.5, 2.5);

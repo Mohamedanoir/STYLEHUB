@@ -11,5 +11,13 @@
         <file>images/veste_validee.gif</file>
         <file>images/jupe_avant.png</file>
         <file>images/jupe_validee.gif</file>
+        <file>images/pantalon_avant.png</file>
+        <file>images/pantalon_validee.gif</file>
+        <file>images/t_shirt_avant.png</file>
+        <file>images/t_shirt_validee.gif</file>
+        <file>images/chemise_homme_avant.png</file>
+        <file>images/chemise_homme_validee.gif</file>
+        <file>images/chapeau_avant.png</file>
+        <file>images/chapeau_validee.gif</file>
     </qresource>
 </RCC>

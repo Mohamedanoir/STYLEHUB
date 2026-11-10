@@ -1,49 +1,96 @@
-FashioNova — Module « Gestion des Maquettes »  (C++ / Qt 6)
-==========================================================
+FashioNova — Module « Gestion des Maquettes »  (C++ / Qt 6 + Oracle)
+===================================================================
 
-OUVRIR LE PROJET
+PRINCIPE
+- Oracle (connexion FASHIONOVA) contient les tables de toute l'équipe :
+  ARTICLES, CLIENTS, COMMANDES, CONTENIR, EMPLOYES, MACHINES, MAQUETTES.
+- Cette application Qt est reliée UNIQUEMENT au module Maquettes :
+    * CRUD (Ajouter / Afficher / Modifier / Supprimer) sur la table MAQUETTES ;
+    * ID_EMPLOYE (clé étrangère) n'est pas affiché : à l'ajout, l'application prend
+      automatiquement le premier employé de EMPLOYES (lecture seule) ; à la modification
+      l'employé déjà enregistré ne change pas ;
+    * les colonnes des mesures (TOUR_COU, TOUR_POITRINE, TOUR_TAILLE, TOUR_HANCHES,
+      LARGEUR_EPAULES, LONGUEUR_MANCHE, ENTREJAMBE, TOUR_TETE) sont ajoutées automatiquement
+      à MAQUETTES au premier lancement si elles n'existent pas (partie 7 du script SQL) ;
+    * les autres tables ne sont jamais modifiées.
+  Les pages Commandes et Machines du menu restent des pages d'exemple (non reliées).
+
+1) PRÉPARER ORACLE (SQL Developer, connexion FASHIONOVA)
+- Ouvrir maquettes_oracle.sql puis F5. Il ne supprime aucune table.
+  Il vérifie MAQUETTES, montre EMPLOYES et ajoute 6 maquettes de test si MAQUETTES est vide.
+- Il faut au moins un employé dans EMPLOYES.
+- Optionnel : ALTER TABLE MAQUETTES ADD NB_VUES NUMBER DEFAULT 0;  (Top 5 enregistré dans Oracle)
+- Toujours faire COMMIT après une modification à la main dans SQL Developer.
+
+2) SOURCE ODBC (une seule fois)
+- Ouvrir « Sources de données ODBC (64 bits) » : C:\Windows\System32\odbcad32.exe
+- Onglet DSN utilisateur -> Ajouter -> pilote Oracle (ex : « Oracle in XE »)
+- Data Source Name : Source_Projet2A    TNS Service Name : XE    User ID : fashionova
+- Bouton « Test Connection » (mot de passe esprit26) -> Connection successful.
+  (Qt MinGW 64 bits => la source doit être créée dans l'outil ODBC 64 bits.)
+
+3) OUVRIR ET LANCER LE PROJET
+1. Qt Creator -> Fichier -> Ouvrir un fichier ou projet -> CMakeLists.txt (ou FashioNova.pro).
+2. Kit « Desktop Qt 6.x MinGW 64-bit » -> Configure Project.
+3. Build -> Run.  Les messages « Connexion Oracle réussie ! » et « Table MAQUETTES accessible ! »
+   apparaissent dans « Sortie de l'application ».
 (Ou en une commande PowerShell : powershell -ExecutionPolicy Bypass -File .\compiler.ps1)
-1. Dézipper le dossier FashioNova (par ex. dans C:\Projets\FashioNova).
-2. Qt Creator -> Fichier -> Ouvrir un fichier ou projet -> choisir CMakeLists.txt
-   (ou FashioNova.pro si vous utilisez qmake).
-3. Choisir le kit "Desktop Qt 6.x MinGW 64-bit" -> Configure Project.
-4. Build -> Run (bouton vert ▶).
 
-La base de données SQLite (maquettes_fashionova.db) est créée automatiquement à côté de
-l'exécutable, avec 25 maquettes de démonstration. Rien à installer.
-
-IMAGES (dossier images/)
-- robe_avant.png   / robe_validee.gif
-- veste_avant.png  / veste_validee.gif
-- jupe_avant.png   / jupe_validee.gif
-- logo.png, banniere.png : logo FashioNova et bannière du haut
-Règle : Statut "En cours" ou "En attente" -> image fixe (toile)
-        Statut "Validée"                  -> GIF animé
-Pour changer une image : remplacer le fichier en gardant EXACTEMENT le même nom,
-puis Build -> Rebuild.
+CORRESPONDANCE FORMULAIRE <-> COLONNES ORACLE (table MAQUETTES)
+  ID Maquette      -> ID_MAQUETTE       (NUMBER, automatique : clic sur le champ ID = dernier ID + 1)
+  Nom              -> NOM_MAQUETTE      (50 caractères max)
+  Type             -> TYPE_MAQUETTE     (Robe, Veste, Jupe, Pantalon, T-shirt, Chapeau, Chemise homme)
+  Date de création -> DATE_DE_CREATION
+  Statut           -> STATUT            (En cours, Validée ; « En attente » reste visible dans le tableau)
+  Taille           -> TAILLE            (XS, S, M, L, XL)
+  Largeur/Longueur -> LARGEUR/LONGUEUR  (cm, nombre réel ex : 45.5 ; obligatoires)
+  Mesures selon le type (cm, nombre réel, obligatoires pour le type choisi) :
+    Tour de cou -> TOUR_COU          Tour de poitrine   -> TOUR_POITRINE
+    Tour de taille -> TOUR_TAILLE    Tour de hanches    -> TOUR_HANCHES
+    Largeur d'épaules -> LARGEUR_EPAULES   Longueur de manche -> LONGUEUR_MANCHE
+    Entrejambe -> ENTREJAMBE         Tour de tête       -> TOUR_TETE
+    Robe : poitrine, taille, hanches        Veste : poitrine, taille, épaules, manche
+    Jupe : taille, hanches                  Pantalon : taille, hanches, entrejambe
+    T-shirt : poitrine, épaules, manche     Chapeau : tour de tête
+    Chemise homme : cou, poitrine, épaules, manche
+  Description      -> DESCRIPTION       (500 caractères max)
+  Vidéo            -> VIDEO             (chemin du fichier)
+  (non affiché)    -> ID_EMPLOYE        (rempli automatiquement : MIN(ID_EMPLOYE) de EMPLOYES)
 
 FICHIERS
-- main.cpp          : lancement + connexion BD
-- connexion.h/.cpp  : création de la base et de la table MAQUETTES
-- maquette.h/.cpp   : classe Maquette (CRUD, recherche, tri, stats, retards, vidéo)
-- statwidgets.h/.cpp: graphiques (donut, courbe, Top 5)
-- icones.h/.cpp     : toutes les icônes (dessinées en code)
-- widgets.h/.cpp    : bannière, zone d'aperçu (image/GIF), miniatures
-- mainwindow.ui     : l'interface (s'ouvre dans Qt Designer : double-clic dans Qt Creator)
-- mainwindow.h/.cpp : le code de l'interface (icônes, connexions, CRUD, métiers)
-- resources.qrc     : liste des images intégrées
+- main.cpp           : lancement + connexion Oracle
+- connexion.h/.cpp   : connexion QODBC (Singleton) + vérification de la table MAQUETTES
+- maquette.h/.cpp    : classe Maquette (CRUD Oracle, recherche, tri, stats, retards, vidéo)
+- maquettes_oracle.sql : script SQL sans danger (vérification + données de test)
+- statwidgets.h/.cpp : graphiques (donut, courbe, Top 5)
+- icones.h/.cpp      : icônes dessinées en code
+- widgets.h/.cpp     : bannière, aperçu (image/GIF), miniatures
+- mainwindow.ui/.h/.cpp : interface et logique
+- resources.qrc      : images intégrées
 
 FONCTIONNALITÉS
-- Types : Robe, Veste, Jupe uniquement
-- Ajouter / Modifier / Supprimer (avec contrôle de saisie)
-- Attributs : ID, Nom, Type, Date de création, Statut, Taille (XS, S, M, L, XL),
-  Largeur (cm), Longueur (cm), Description
-- Rechercher : ID, Nom, Type      - Trier : Date de création, Type, Statut
-- Exporter PDF de la liste (avec Taille, Largeur et Longueur)
-- Statistiques : par type, évolution (cumul sur 6 mois), Top 5 des maquettes les plus consultées
-  (chaque clic sur une maquette dans la liste ajoute 1 consultation)
-- Pagination : 5 maquettes par page
+- Ouverture de l'interface : formulaire vide (champs texte vides, listes sur « Aucun »)
+- ID automatique : clic sur le champ ID -> prochain ID libre (jamais deux fois le même ID) ;
+  si l'ID est vide au moment d'Ajouter, il est donné automatiquement
+- Clic sur une ligne du tableau : ses données s'affichent dans le formulaire (pour Modifier)
+- Le tableau s'ouvre sur la dernière page ; après Ajouter / Modifier, la ligne concernée
+  est affichée et surlignée
+- Attributs selon le type : en choisissant le Type (ex : Jupe), le formulaire affiche
+  automatiquement ses mesures (ex : Tour de taille, Tour de hanches)
+- Mesures : message clair si le champ est vide ou n'est pas un nombre réel (float)
+- Ajouter / Modifier / Supprimer avec contrôle de saisie (et messages clairs pour les erreurs Oracle)
+- Rechercher (ID, Nom, Type) - Trier (Date, Type, Statut) - Pagination 5 lignes
 - Cases à cocher : supprimer plusieurs maquettes d'un coup
-- Métier 1 : vidéo de présentation (bouton + sous l'image pour ajouter, ▶ pour lire, crayon pour changer)
-- Métier 2 : alerte automatique des maquettes non validées depuis plus de 7 jours
-  (chiffre sur la cloche + lignes en rouge + pop-up au démarrage, vérification chaque minute)
+- Exporter la liste en PDF
+- Statistiques : par type, par mois (6 mois), Top 5 des plus consultées
+- Métier 1 : vidéo de présentation   - Métier 2 : alerte des maquettes non validées depuis 7 jours
+
+PROBLÈMES FRÉQUENTS
+- « Data source name not found » : la source Source_Projet2A n'existe pas dans l'ODBC 64 bits.
+- ORA-01017 : mauvais utilisateur / mot de passe (voir connexion.cpp).
+- ORA-00904 : une colonne de MAQUETTES a un autre nom que ceux listés ci-dessus.
+- L'application se fige sur Modifier/Supprimer : une modification non validée (sans COMMIT)
+  est ouverte dans SQL Developer sur la même ligne -> faire COMMIT dans SQL Developer.
+- « Aucun employé dans la table EMPLOYES » : ajouter un employé dans EMPLOYES puis COMMIT.
+- Suppression refusée « utilisée par un autre module » : la maquette est référencée
+  par une autre table (ex : CONTENIR / COMMANDES) ; c'est Oracle qui protège les données.

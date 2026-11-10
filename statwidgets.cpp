@@ -7,8 +7,9 @@
 QColor couleurSerie(int i)
 {
     static const QColor c[] = { QColor("#0B2D52"), QColor("#7EA6D8"), QColor("#B8D2EE"),
-                                QColor("#F1CFA6"), QColor("#C59A62"), QColor("#7D8597") };
-    return c[i % 6];
+                                QColor("#F1CFA6"), QColor("#C59A62"), QColor("#7D8597"),
+                                QColor("#3F6E9E"), QColor("#8C5A2B") };
+    return c[i % 8];
 }
 
 static QColor couleurBarre(int i)
@@ -39,7 +40,22 @@ void DonutChart::paintEvent(QPaintEvent *)
         return;
     }
 
-    const qreal diam = qMin<qreal>(qMin<qreal>(height() - 16, 150), width() * 0.42);
+    // Légende (s'adapte au nombre de types : jusqu'à 7 lignes) : tailles calculées d'abord
+    const int n = m_d.size();
+    const int pasY = qBound(18, (height() - 8) / qMax(1, n), 29);   // hauteur d'une ligne
+    const int carre = qMin(15, pasY - 6);
+    QFont fl = font();
+    fl.setPixelSize(pasY < 24 ? 12 : 13);
+    const QFontMetrics fm(fl);
+    int largNom = 0;
+    for (const auto &e : m_d) largNom = qMax(largNom, fm.horizontalAdvance(e.first));
+    largNom = qMax(76, largNom + 10);
+    const int largValeur = fm.horizontalAdvance("99 (100%)") + 4;
+
+    // Le cercle laisse la place à la légende (sans descendre sous 100 px)
+    const qreal placeCercle = width() - 6 - 22 - 22 - largNom - largValeur;
+    const qreal diam = qMax<qreal>(qMin<qreal>(100, height() - 16),
+                                   qMin<qreal>(qMin<qreal>(height() - 16, 150), qMin<qreal>(width() * 0.42, placeCercle)));
     const QRectF cercle(6, (height() - diam) / 2.0, diam, diam);
     const qreal ep = diam * 0.25;
     const QRectF arc = cercle.adjusted(ep / 2, ep / 2, -ep / 2, -ep / 2);
@@ -74,20 +90,21 @@ void DonutChart::paintEvent(QPaintEvent *)
     p.drawText(QRectF(cercle.left(), c.y() + diam * 0.04, diam, 18), Qt::AlignCenter, "total");
 
     // Légende
-    f.setPixelSize(13);
-    p.setFont(f);
+    p.setFont(fl);
     const int x = int(cercle.right()) + 22;
-    int y = int(height() / 2.0 - m_d.size() * 29 / 2.0);
-    for (int i = 0; i < m_d.size(); ++i) {
+    largNom = qMax(40, qMin(largNom, width() - x - 22 - largValeur));
+    int y = int(height() / 2.0 - n * pasY / 2.0);
+    for (int i = 0; i < n; ++i) {
         p.setPen(Qt::NoPen);
         p.setBrush(couleurSerie(i));
-        p.drawRoundedRect(QRectF(x, y + 5, 15, 15), 3, 3);
+        p.drawRoundedRect(QRectF(x, y + (pasY - carre) / 2.0, carre, carre), 3, 3);
         p.setPen(TEXTE);
-        p.drawText(QRect(x + 22, y, 78, 25), Qt::AlignVCenter | Qt::AlignLeft, m_d[i].first);
+        p.drawText(QRect(x + 22, y, largNom, pasY), Qt::AlignVCenter | Qt::AlignLeft,
+                   fm.elidedText(m_d[i].first, Qt::ElideRight, largNom));
         const int pct = qRound(100.0 * m_d[i].second / total);
-        p.drawText(QRect(x + 98, y, 80, 25), Qt::AlignVCenter | Qt::AlignLeft,
+        p.drawText(QRect(x + 22 + largNom, y, 80, pasY), Qt::AlignVCenter | Qt::AlignLeft,
                    QString("%1 (%2%)").arg(m_d[i].second).arg(pct));
-        y += 29;
+        y += pasY;
     }
 }
 
