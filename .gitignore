@@ -1,4 +1,13 @@
 build/
+build_llvm/
 .qtcreator/
 *.user
 .env
+*.exe
+*.dll
+*.o
+generic/
+imageformats/
+platforms/
+sqldrivers/
+styles/
