@@ -1,0 +1,8 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/">
+<file>assets/sidebar.png</file>
+<file>assets/banner.png</file>
+<file>assets/employee_photo.png</file>
+<file>assets/stats_reference.png</file>
+</qresource>
+</RCC>
