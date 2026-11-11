@@ -14,21 +14,27 @@ SOURCES += \
     src/sidebarwidget.cpp \
     src/detailsdialog.cpp \
     src/database.cpp \
+    src/connection.cpp \
     src/uihelpers.cpp \
     src/chartwidgets.cpp \
     src/metiers.cpp \
+    src/recorddialogs.cpp \
     src/bannerwidget.cpp
 
 HEADERS += \
+    src/machinevalidation.h \
     src/machine.h \
     src/mainwindow.h \
     src/machinespage.h \
     src/sidebarwidget.h \
     src/detailsdialog.h \
     src/database.h \
+    src/connection.h \
     src/uihelpers.h \
     src/chartwidgets.h \
     src/metiers.h \
+    src/recorddialogs.h \
+    src/businessrecords.h \
     src/bannerwidget.h
 
 FORMS += \

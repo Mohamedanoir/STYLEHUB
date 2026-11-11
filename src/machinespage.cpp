@@ -8,11 +8,13 @@
 #include <QComboBox>
 #include <QDateEdit>
 #include <QDesktopServices>
+#include <QDoubleSpinBox>
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
+#include <QLocale>
 #include <QMap>
 #include <QMarginsF>
 #include <QMenu>
@@ -20,7 +22,9 @@
 #include <QPageSize>
 #include <QPdfWriter>
 #include <QPushButton>
+#include <QRegularExpressionValidator>
 #include <QSignalBlocker>
+#include <QSpinBox>
 #include <QStyle>
 #include <QTableWidget>
 #include <QTextDocument>
@@ -30,15 +34,14 @@
 
 #include "chartwidgets.h"
 #include "database.h"
-#include "detailsdialog.h"
+#include "machinevalidation.h"
 #include "metiers.h"
+#include "recorddialogs.h"
 #include "uihelpers.h"
 
 static const int kPageSize = 5;
 
-// Version « maquette » : mettre true pour réactiver les boutons du CRUD
-// (Ajouter, Afficher, Modifier, Supprimer). A false, ils restent visibles mais ne font rien.
-static const bool kCrudActif = false;
+static const bool kCrudActif = true;
 
 static void repolish(QWidget *w)
 {
@@ -61,6 +64,11 @@ MachinesPage::MachinesPage(QWidget *parent)
     : QWidget(parent), ui(new Ui::MachinesPage)
 {
     ui->setupUi(this);          // construit toute l'interface décrite dans machinespage.ui
+    ui->lineNom->setMaxLength(200);
+    ui->lineNom->setValidator(new QRegularExpressionValidator(
+        MachineValidation::namePattern(), ui->lineNom));
+    ui->lineNom->setToolTip(QStringLiteral("Lettres et chiffres acceptés, avec au moins une lettre. Exemple : Singer 200."));
+    ui->dateMaintenance->setKeyboardTracking(false);
     m_pager = ui->pagerLayout;
 
     setupIcons();
@@ -108,18 +116,48 @@ void MachinesPage::setupIcons()
     ui->btnAdd->setIcon(UI::svgIcon(QStringLiteral("plus"),  Qt::white, 20));
     ui->btnMod->setIcon(UI::svgIcon(QStringLiteral("pen"),   Qt::white, 20));
     ui->btnDel->setIcon(UI::svgIcon(QStringLiteral("trash"), QColor("#4a3a26"), 20));
-    ui->btnView->setIcon(UI::svgIcon(QStringLiteral("eye"),  QColor("#1b1d25"), 20));
     ui->btnReset->setIcon(UI::svgIcon(QStringLiteral("refresh"), QColor("#23252e"), 16));
     ui->btnExport->setIcon(UI::svgIcon(QStringLiteral("doc"), Qt::white, 16));
-    ui->btnChip->setIcon(UI::svgIcon(QStringLiteral("warn"), QColor("#b9781a"), 16));
 
     ui->lineSearch->addAction(UI::svgIcon(QStringLiteral("search"), QColor("#6b7a90"), 18),
                               QLineEdit::LeadingPosition);
 }
 
+void MachinesPage::setupBusinessActions()
+{
+    auto *layout = qobject_cast<QHBoxLayout *>(ui->headerStats->layout());
+    if (!layout) return;
+
+    auto addButton = [this, layout](const QString &text, const QString &name, const QString &tip,
+                                    auto slot, int width) {
+        auto *button = new QPushButton(text, ui->headerStats);
+        button->setObjectName(name);
+        button->setToolTip(tip);
+        button->setFixedSize(width, 32);
+        button->setCursor(Qt::PointingHandCursor);
+        layout->addWidget(button);
+        connect(button, &QPushButton::clicked, this, slot);
+    };
+    addButton(QStringLiteral("+ Relevé réel"), QStringLiteral("btnAddReading"),
+              QStringLiteral("Saisir les heures et la production journalière d'une machine"),
+              &MachinesPage::onAddReading, 118);
+    addButton(QStringLiteral("Planifier entretien"), QStringLiteral("btnPlanMaintenance"),
+              QStringLiteral("Enregistrer une intervention pour une machine"),
+              &MachinesPage::onPlanMaintenance, 150);
+    addButton(QStringLiteral("Appliquer le planning"), QStringLiteral("btnApplyPlan"),
+              QStringLiteral("Enregistrer les propositions optimisées pour tout le parc"),
+              &MachinesPage::onApplyOptimizedPlan, 155);
+}
+
 void MachinesPage::setupTable()
 {
     QTableWidget *t = ui->tableMachines;
+    t->setColumnCount(10);
+    t->setHorizontalHeaderLabels({QString(), QStringLiteral("ID"), QStringLiteral("Nom"),
+        QStringLiteral("Type"), QStringLiteral("État"), QStringLiteral("Heures fonct."),
+        QStringLiteral("Pièces prod."), QStringLiteral("Heures arrêt"),
+        QStringLiteral("Prochaine maint."), QStringLiteral("Aperçu")});
+    t->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     t->verticalHeader()->setDefaultSectionSize(50);
     t->setFixedHeight(40 + 50 * kPageSize + 4);
     QHeaderView *hh = t->horizontalHeader();
@@ -127,10 +165,10 @@ void MachinesPage::setupTable()
     hh->setFixedHeight(40);
     hh->setSectionsClickable(true);
     hh->setSectionResizeMode(QHeaderView::Fixed);
-    hh->setSectionResizeMode(2, QHeaderView::Stretch);
+    hh->setSectionResizeMode(2, QHeaderView::Fixed);
     hh->setStretchLastSection(false);
-    const int widths[] = { 34, 70, 0, 78, 122, 118, 84 };
-    for (int c = 0; c < 7; ++c) if (widths[c]) t->setColumnWidth(c, widths[c]);
+    const int widths[] = { 30, 70, 132, 74, 110, 102, 88, 92, 116, 78 };
+    for (int c = 0; c < 10; ++c) t->setColumnWidth(c, widths[c]);
     hh->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
     // case « tout cocher » de l'en-tête
@@ -147,9 +185,11 @@ void MachinesPage::setupTable()
 
 void MachinesPage::connectSignals()
 {
+    connect(ui->lineNom, &QLineEdit::inputRejected, this, [this] {
+        emit notify(QStringLiteral("Nom refusé : lettres, chiffres, espaces, apostrophes et traits d'union uniquement (200 caractères maximum)."), true);
+    });
     if (kCrudActif) {
         connect(ui->btnAdd,  &QPushButton::clicked, this, &MachinesPage::onAdd);      // Create
-        connect(ui->btnView, &QPushButton::clicked, this, &MachinesPage::onView);     // Read
         connect(ui->btnMod,  &QPushButton::clicked, this, &MachinesPage::onModify);   // Update
         connect(ui->btnDel,  &QPushButton::clicked, this, &MachinesPage::onDelete);   // Delete
     }
@@ -164,7 +204,6 @@ void MachinesPage::connectSignals()
     connect(ui->tableMachines, &QTableWidget::itemSelectionChanged, this, &MachinesPage::onRowSelected);
     connect(ui->lineSearch, &QLineEdit::textChanged, this, &MachinesPage::onSearchChanged);
     connect(ui->comboSort, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this] { m_page = 0; applyFilter(); });
-    connect(ui->btnChip, &QPushButton::clicked, this, [this] { m_onlyAlerts = !m_onlyAlerts; m_page = 0; applyFilter(); });
 }
 
 /* ============================== données =============================== */
@@ -208,8 +247,7 @@ void MachinesPage::applyFilter()
             || m.id.contains(q, Qt::CaseInsensitive)
             || m.nom.contains(q, Qt::CaseInsensitive)
             || m.type.contains(q, Qt::CaseInsensitive);
-        if (match && (!m_onlyAlerts || m.maintenanceRequise()))
-            m_view.append(m);
+        if (match) m_view.append(m);
     }
 
     // tri par Nom_Machine, Type_Machine ou Etat
@@ -221,13 +259,6 @@ void MachinesPage::applyFilter()
             return QString::localeAwareCompare(x, y) < 0;
         });
     }
-
-    int alerts = 0;
-    for (const Machine &m : std::as_const(m_all)) if (m.maintenanceRequise()) ++alerts;
-    ui->btnChip->setVisible(alerts > 0);
-    ui->btnChip->setText(m_onlyAlerts
-        ? QStringLiteral("  %1 machine(s) à maintenir – afficher tout").arg(alerts)
-        : QStringLiteral("  %1 machine(s) nécessitent une maintenance").arg(alerts));
 
     renderPage();
 }
@@ -262,6 +293,9 @@ void MachinesPage::renderPage()
             ui->tableMachines->setItem(r, 1, mk(m.id));
             ui->tableMachines->setItem(r, 2, mk(m.nom));
             ui->tableMachines->setItem(r, 3, mk(m.type));
+            ui->tableMachines->setItem(r, 5, mk(QStringLiteral("%1 h").arg(m.heuresFonctionnement, 0, 'f', 1)));
+            ui->tableMachines->setItem(r, 6, mk(QLocale().toString(m.piecesProduites)));
+            ui->tableMachines->setItem(r, 7, mk(QStringLiteral("%1 h").arg(m.heuresArret, 0, 'f', 1)));
 
             // pastille d'état
             QString bg = QStringLiteral("#dcefd9"), fg = QStringLiteral("#3f8a45");
@@ -271,6 +305,7 @@ void MachinesPage::renderPage()
             pill->setStyleSheet(QStringLiteral("background:%1;color:%2;border-radius:5px;padding:4px 9px;font-size:12px;")
                                     .arg(bg, fg));
             auto *pw = new QWidget;
+            pw->setAttribute(Qt::WA_TransparentForMouseEvents);
             auto *pl = new QHBoxLayout(pw);
             pl->setContentsMargins(4, 0, 4, 0);
             pl->addWidget(pill);
@@ -285,15 +320,16 @@ void MachinesPage::renderPage()
                 dt->setForeground(m.critique() ? QColor("#c8402f") : QColor("#b9781a"));
                 dt->setToolTip(reason);
             }
-            ui->tableMachines->setItem(r, 5, dt);
+            ui->tableMachines->setItem(r, 8, dt);
 
             auto *ap = new QLabel;
             ap->setPixmap(UI::cover(UI::machinePixmap(m.photo), QSize(64, 38), 4));
             auto *aw = new QWidget;
+            aw->setAttribute(Qt::WA_TransparentForMouseEvents);
             auto *al = new QHBoxLayout(aw);
             al->setContentsMargins(4, 0, 4, 0);
             al->addWidget(ap);
-            ui->tableMachines->setCellWidget(r, 6, aw);
+            ui->tableMachines->setCellWidget(r, 9, aw);
         }
 
         for (int r = 0; r < to - from; ++r)
@@ -345,18 +381,23 @@ void MachinesPage::updateCharts()
             slices.append(DonutChart::Slice{ t, count.value(t), UI::typeColor(t) });
     ui->donutChart->setData(slices, QStringLiteral("machines"));
 
-    // Métier 1 : performance du parc par type (part de machines disponibles)
-    const QVector<Metier::Performance> perf = Metier::performanceParType(m_all);
+    // Les performances sont calculées à partir des trois attributs de la fiche machine.
+    const QVector<Metier::Performance> perf = Metier::performanceParType(m_all, {});
     QVector<PerformanceBars::Entry> bars;
     for (const Metier::Performance &p : perf)
-        bars.append(PerformanceBars::Entry{ p.type, p.operationnelles, p.total });
+        bars.append(PerformanceBars::Entry{ p.type, qBound(0, p.pourcentage(), 100),
+                                             qRound(p.disponibilite), qRound(p.productionAtteinte),
+                                             p.nombreMachines });
     const QString perfSummary = perf.isEmpty()
-        ? QStringLiteral("Aucune machine enregistrée")
-        : QStringLiteral("Type le plus performant : %1 (%2 %)").arg(perf.first().type).arg(perf.first().pourcentage());
+        ? QStringLiteral("Ajoutez les heures et pièces produites dans les fiches machines")
+        : QStringLiteral("Type le plus performant : %1 · %2 pièces/h · disponibilité %3 %")
+              .arg(perf.first().type).arg(perf.first().piecesParHeure, 0, 'f', 1)
+              .arg(qRound(perf.first().disponibilite));
     ui->performanceBars->setData(bars, perfSummary);
 
-    // Métier 2 : planning de maintenance optimisé (les 5 prochaines interventions)
-    const QVector<Metier::Intervention> plan = Metier::planifierMaintenances(m_all);
+    // Métier 2 : le plan utilise aussi le score des types pour avancer les entretiens nécessaires.
+    const QVector<Metier::Intervention> plan = Metier::planifierMaintenances(
+        m_all, perf, Database::allMaintenanceRecords());
     int ajustees = 0;
     QVector<PlanningList::Entry> rows;
     for (const Metier::Intervention &iv : plan) {
@@ -364,6 +405,7 @@ void MachinesPage::updateCharts()
         if (rows.size() >= 5) continue;
         QColor c("#2e9e5b");                                  // date conservée
         if (iv.urgente()) c = QColor("#e5484d");              // indisponible ou en retard
+        else if (iv.motif == Metier::Intervention::PerformanceFaible) c = QColor("#c47b16");
         else if (iv.modifiee()) c = QColor("#f0a020");        // ajustée (en cours, week-end, même type)
         const QString fmt = QStringLiteral("dd/MM");
         rows.append(PlanningList::Entry{ iv.nom, iv.actuelle.toString(fmt), iv.proposee.toString(fmt),
@@ -372,8 +414,8 @@ void MachinesPage::updateCharts()
     const QString planSummary = plan.isEmpty()
         ? QStringLiteral("Aucune machine enregistrée")
         : (ajustees == 0 ? QStringLiteral("Planning à jour : aucune date à ajuster")
-                         : QStringLiteral("%1 date%2 ajustée%2 sur %3 machines")
-                               .arg(ajustees).arg(ajustees > 1 ? "s" : "").arg(plan.size()));
+                         : QStringLiteral("%1 date(s) ajustée(s) · priorité aux retards et types faibles")
+                               .arg(ajustees));
     ui->planningList->setData(rows, planSummary);
 }
 
@@ -433,15 +475,14 @@ void MachinesPage::showAlertsMenu(QWidget *anchor)
 bool MachinesPage::readForm(Machine &m, QString *error) const
 {
     m.nom = ui->lineNom->text().trimmed();
-    if (m.nom.isEmpty()) {
-        *error = QStringLiteral("Le nom de la machine est obligatoire.");
-        return false;
-    }
     m.type = ui->comboType->currentText();
     m.etat = ui->comboEtat->currentText();
     m.prochaineMaintenance = ui->dateMaintenance->date();
+    m.heuresFonctionnement = ui->spinHeuresFonctionnement->value();
+    m.piecesProduites = ui->spinPiecesProduites->value();
+    m.heuresArret = ui->spinHeuresArret->value();
     m.photo = m_formPhoto;
-    return true;
+    return MachineValidation::validate(m, error);
 }
 
 void MachinesPage::loadForm(const Machine &m)
@@ -453,6 +494,9 @@ void MachinesPage::loadForm(const Machine &m)
     ui->comboType->setCurrentIndex(i);
     ui->comboEtat->setCurrentIndex(qMax(0, ui->comboEtat->findText(m.etat)));
     ui->dateMaintenance->setDate(m.prochaineMaintenance);
+    ui->spinHeuresFonctionnement->setValue(m.heuresFonctionnement);
+    ui->spinPiecesProduites->setValue(m.piecesProduites);
+    ui->spinHeuresArret->setValue(m.heuresArret);
     m_formPhoto = m.photo;
     updatePreview();
     updateDetection();
@@ -467,6 +511,9 @@ void MachinesPage::clearForm()
     ui->comboType->setCurrentIndex(0);
     ui->comboEtat->setCurrentIndex(0);
     ui->dateMaintenance->setDate(QDate::currentDate().addDays(60));
+    ui->spinHeuresFonctionnement->setValue(0.0);
+    ui->spinPiecesProduites->setValue(0);
+    ui->spinHeuresArret->setValue(0.0);
     updatePreview();
     updateDetection();
 }
@@ -512,12 +559,14 @@ void MachinesPage::onAdd()
     QString err;
     if (!readForm(m, &err)) { QMessageBox::warning(this, QStringLiteral("Ajouter"), err); return; }
     m.id = Database::nextId();
+    if (m.id.isEmpty()) { QMessageBox::critical(this, QStringLiteral("Ajouter"), QStringLiteral("Impossible de générer le prochain ID.")); return; }
     if (!Database::insert(m, &err)) { QMessageBox::critical(this, QStringLiteral("Ajouter"), err); return; }
-    m_currentId = m.id;
+    const QString createdId = m.id;
+    ui->lineSearch->clear();
     reloadData();
-    goToMachine(m.id);
-    loadForm(m);
-    emit notify(QStringLiteral("Machine %1 ajoutée avec succès.").arg(m.id), false);
+    goToMachine(createdId);
+    emit notify(QStringLiteral("Machine %1 ajoutée avec succès.").arg(createdId), false);
+    clearForm();
 }
 
 void MachinesPage::onModify()
@@ -526,13 +575,21 @@ void MachinesPage::onModify()
         QMessageBox::information(this, QStringLiteral("Modifier"), QStringLiteral("Sélectionnez d'abord une machine dans la liste."));
         return;
     }
-    Machine m;
+    const Machine *selected = findMachine(m_currentId);
+    if (!selected) {
+        QMessageBox::warning(this, QStringLiteral("Modifier"), QStringLiteral("Cette machine n'existe plus. Actualisez la liste."));
+        return;
+    }
+    // Conserve les heures et la production, absentes du formulaire simplifié.
+    Machine m = *selected;
     QString err;
     if (!readForm(m, &err)) { QMessageBox::warning(this, QStringLiteral("Modifier"), err); return; }
     m.id = m_currentId;
     if (!Database::update(m, &err)) { QMessageBox::critical(this, QStringLiteral("Modifier"), err); return; }
+    ui->lineSearch->clear();
     reloadData();
     goToMachine(m.id);
+    loadForm(m);
     emit notify(QStringLiteral("Machine %1 modifiée.").arg(m.id), false);
 }
 
@@ -553,17 +610,6 @@ void MachinesPage::onDelete()
     emit notify(QStringLiteral("Machine %1 supprimée.").arg(id), false);
 }
 
-void MachinesPage::onView()
-{
-    const Machine *m = m_currentId.isEmpty() ? nullptr : findMachine(m_currentId);
-    if (!m) {
-        QMessageBox::information(this, QStringLiteral("Afficher"), QStringLiteral("Sélectionnez d'abord une machine dans la liste."));
-        return;
-    }
-    DetailsDialog dlg(*m, this);
-    dlg.exec();
-}
-
 void MachinesPage::onReset()
 {
     clearForm();
@@ -581,6 +627,82 @@ void MachinesPage::onChoosePhoto()
         emit notify(QStringLiteral("Photo sélectionnée : cliquez sur « Modifier » pour l'enregistrer."), false);
 }
 
+void MachinesPage::onAddReading()
+{
+    if (m_all.isEmpty()) {
+        QMessageBox::information(this, QStringLiteral("Relevé de production"),
+                                 QStringLiteral("Ajoutez d'abord une machine au parc."));
+        return;
+    }
+    MachineReadingDialog dialog(m_all, this);
+    if (dialog.exec() != QDialog::Accepted) return;
+    QString error;
+    if (!Database::insertReading(dialog.reading(), &error)) {
+        QMessageBox::warning(this, QStringLiteral("Relevé non enregistré"),
+                             QStringLiteral("Le relevé n'a pas été enregistré. Vérifiez qu'il n'existe pas déjà pour cette machine et cette date.\n\n%1").arg(error));
+        return;
+    }
+    reloadData();
+    emit notify(QStringLiteral("Relevé enregistré. Les scores de performance ont été recalculés."), false);
+}
+
+void MachinesPage::onPlanMaintenance()
+{
+    if (m_all.isEmpty()) {
+        QMessageBox::information(this, QStringLiteral("Planifier une maintenance"),
+                                 QStringLiteral("Ajoutez d'abord une machine au parc."));
+        return;
+    }
+    MaintenancePlanDialog dialog(m_all, Database::allMaintenanceRecords(), this);
+    if (dialog.exec() != QDialog::Accepted) return;
+    QList<MaintenanceRecord> records;
+    records.append(dialog.record());
+    QString error;
+    if (!Database::applyMaintenancePlan(records, &error)) {
+        QMessageBox::critical(this, QStringLiteral("Plan non enregistré"), error);
+        return;
+    }
+    reloadData();
+    emit notify(QStringLiteral("Maintenance planifiée et ajoutée à l'historique."), false);
+}
+
+void MachinesPage::onApplyOptimizedPlan()
+{
+    if (m_all.isEmpty()) return;
+    const QVector<Metier::Performance> perf = Metier::performanceParType(m_all, {});
+    if (perf.isEmpty()) {
+        QMessageBox::information(this, QStringLiteral("Planning optimisé"),
+            QStringLiteral("Renseignez les heures de fonctionnement, pièces produites et heures d'arrêt dans les fiches machines."));
+        return;
+    }
+    const QVector<Metier::Intervention> plan = Metier::planifierMaintenances(
+        m_all, perf, Database::allMaintenanceRecords());
+    const auto answer = QMessageBox::question(this, QStringLiteral("Appliquer le planning optimisé"),
+        QStringLiteral("Enregistrer les dates proposées pour les %1 machines ?\n\n"
+                       "Les anciennes dates seront conservées dans l'historique comme replanifiées.")
+            .arg(plan.size()), QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
+    if (answer != QMessageBox::Yes) return;
+
+    QList<MaintenanceRecord> records;
+    for (const Metier::Intervention &iv : plan) {
+        MaintenanceRecord r;
+        r.machineId = iv.id;
+        r.plannedDate = iv.proposee;
+        r.priority = iv.urgente() ? 5
+                     : iv.motif == Metier::Intervention::PerformanceFaible ? 4 : 2;
+        r.estimatedHours = iv.dureeEstimee;
+        r.description = iv.raison();
+        records.append(r);
+    }
+    QString error;
+    if (!Database::applyMaintenancePlan(records, &error)) {
+        QMessageBox::critical(this, QStringLiteral("Planning non enregistré"), error);
+        return;
+    }
+    reloadData();
+    emit notify(QStringLiteral("Planning optimisé enregistré pour %1 machines.").arg(records.size()), false);
+}
+
 void MachinesPage::onExportPdf()
 {
     const QString path = QFileDialog::getSaveFileName(this, QStringLiteral("Exporter la liste des machines"),
@@ -591,8 +713,12 @@ void MachinesPage::onExportPdf()
     QString rows;
     for (const Machine &m : std::as_const(m_view)) {
         const QString alert = m.raisonMaintenance();
-        rows += QStringLiteral("<tr><td>%1</td><td>%2</td><td>%3</td><td>%4</td><td>%5</td><td>%6</td></tr>")
+        rows += QStringLiteral("<tr><td>%1</td><td>%2</td><td>%3</td><td>%4</td><td>%5</td>"
+                               "<td>%6</td><td>%7</td><td>%8</td><td>%9</td></tr>")
                     .arg(m.id, m.nom.toHtmlEscaped(), m.type, m.etat,
+                         QStringLiteral("%1 h").arg(m.heuresFonctionnement, 0, 'f', 1),
+                         QString::number(m.piecesProduites),
+                         QStringLiteral("%1 h").arg(m.heuresArret, 0, 'f', 1),
                          m.prochaineMaintenance.toString(QStringLiteral("dd/MM/yyyy")), alert);
     }
     const QString html = QStringLiteral(
@@ -600,7 +726,8 @@ void MachinesPage::onExportPdf()
         "<p>Édité le %1 – %2 machine(s)</p>"
         "<table border='1' cellspacing='0' cellpadding='5' width='100%'>"
         "<tr style='background:#efe3cf'><th>ID_Machine</th><th>Nom_Machine</th><th>Type_Machine</th>"
-        "<th>Etat</th><th>Date_Prochaine_Maintenance</th><th>Alerte</th></tr>%3</table>")
+        "<th>Etat</th><th>Heures fonctionnement</th><th>Pièces produites</th><th>Heures d'arrêt</th>"
+        "<th>Date prochaine maintenance</th><th>Alerte</th></tr>%3</table>")
         .arg(QDate::currentDate().toString(QStringLiteral("dd/MM/yyyy")))
         .arg(m_view.size())
         .arg(rows);

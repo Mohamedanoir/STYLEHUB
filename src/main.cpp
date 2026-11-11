@@ -22,12 +22,13 @@ int main(int argc, char *argv[])
     QString error;
     if (!Database::open(&error)) {
         QMessageBox::critical(nullptr, QStringLiteral("Base de données"),
-                              QStringLiteral("Impossible d'ouvrir la base SQLite :\n%1\n\n"
-                                             "Vérifiez que le pilote QSQLITE est installé avec Qt.").arg(error));
+                              QStringLiteral("Impossible de se connecter à Oracle :\n%1\n\n"
+                                             "Vérifiez le pilote Oracle ODBC 64 bits, le DSN FASHIONOVA_XE, "
+                                             "le service Oracle et le compte FASHIONOVA.").arg(error));
         return 1;
     }
 
-    MainWindow w;       // taille, titre, etc. : voir src/mainwindow.ui
+    MainWindow w;
     w.show();
     return app.exec();
 }

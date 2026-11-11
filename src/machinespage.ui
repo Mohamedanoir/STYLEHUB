@@ -555,7 +555,80 @@ maintenance</string>
                      </layout>
                     </widget>
                    </item>
-                   <item row="5" column="0" colspan="2">
+                   <item row="5" column="0">
+                    <widget class="QLabel" name="labelHeuresFonctionnement">
+                     <property name="text"><string>Heures fonctionnement</string></property>
+                     <property name="role" stdset="0"><string>formLabel</string></property>
+                    </widget>
+                   </item>
+                   <item row="5" column="1">
+                                        <widget class="QFrame" name="fieldHeuresFonctionnement">
+                     <property name="frameShape"><enum>QFrame::NoFrame</enum></property>
+                     <property name="role" stdset="0"><string>field</string></property>
+                     <layout class="QHBoxLayout" name="layout_spinHeuresFonctionnement">
+                      <property name="leftMargin"><number>10</number></property>
+                      <property name="topMargin"><number>0</number></property>
+                      <property name="rightMargin"><number>6</number></property>
+                      <property name="bottomMargin"><number>0</number></property>
+                      <item>
+<widget class="QDoubleSpinBox" name="spinHeuresFonctionnement">
+                     <property name="maximum"><double>999999.990000000000000</double></property>
+                     <property name="decimals"><number>2</number></property>
+                     <property name="suffix"><string> h</string></property>
+                    </widget>
+                      </item>
+                     </layout>
+                    </widget>
+                   </item>
+                   <item row="6" column="0">
+                    <widget class="QLabel" name="labelPiecesProduites">
+                     <property name="text"><string>Pièces produites</string></property>
+                     <property name="role" stdset="0"><string>formLabel</string></property>
+                    </widget>
+                   </item>
+                   <item row="6" column="1">
+                                        <widget class="QFrame" name="fieldPiecesProduites">
+                     <property name="frameShape"><enum>QFrame::NoFrame</enum></property>
+                     <property name="role" stdset="0"><string>field</string></property>
+                     <layout class="QHBoxLayout" name="layout_spinPiecesProduites">
+                      <property name="leftMargin"><number>10</number></property>
+                      <property name="topMargin"><number>0</number></property>
+                      <property name="rightMargin"><number>6</number></property>
+                      <property name="bottomMargin"><number>0</number></property>
+                      <item>
+<widget class="QSpinBox" name="spinPiecesProduites">
+                     <property name="maximum"><number>999999999</number></property>
+                    </widget>
+                      </item>
+                     </layout>
+                    </widget>
+                   </item>
+                   <item row="7" column="0">
+                    <widget class="QLabel" name="labelHeuresArret">
+                     <property name="text"><string>Heures d'arrêt</string></property>
+                     <property name="role" stdset="0"><string>formLabel</string></property>
+                    </widget>
+                   </item>
+                   <item row="7" column="1">
+                                        <widget class="QFrame" name="fieldHeuresArret">
+                     <property name="frameShape"><enum>QFrame::NoFrame</enum></property>
+                     <property name="role" stdset="0"><string>field</string></property>
+                     <layout class="QHBoxLayout" name="layout_spinHeuresArret">
+                      <property name="leftMargin"><number>10</number></property>
+                      <property name="topMargin"><number>0</number></property>
+                      <property name="rightMargin"><number>6</number></property>
+                      <property name="bottomMargin"><number>0</number></property>
+                      <item>
+<widget class="QDoubleSpinBox" name="spinHeuresArret">
+                     <property name="maximum"><double>999999.990000000000000</double></property>
+                     <property name="decimals"><number>2</number></property>
+                     <property name="suffix"><string> h</string></property>
+                    </widget>
+                      </item>
+                     </layout>
+                    </widget>
+                   </item>
+                   <item row="8" column="0" colspan="2">
                     <widget class="QLabel" name="labelDetection">
                      <property name="wordWrap">
                       <bool>true</bool>
@@ -760,22 +833,6 @@ maintenance</string>
                   <widget class="QPushButton" name="btnDel">
                    <property name="text">
                     <string>Supprimer</string>
-                   </property>
-                   <property name="cursor">
-                    <cursorShape>PointingHandCursor</cursorShape>
-                   </property>
-                   <property name="iconSize">
-                    <size>
-                     <width>20</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QPushButton" name="btnView">
-                   <property name="text">
-                    <string>Afficher</string>
                    </property>
                    <property name="cursor">
                     <cursorShape>PointingHandCursor</cursorShape>
@@ -996,36 +1053,6 @@ maintenance</string>
                     </size>
                    </property>
                   </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="layoutChip">
-                 <item>
-                  <widget class="QPushButton" name="btnChip">
-                   <property name="cursor">
-                    <cursorShape>PointingHandCursor</cursorShape>
-                   </property>
-                   <property name="iconSize">
-                    <size>
-                     <width>16</width>
-                     <height>16</height>
-                    </size>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="spacerChip">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>0</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
                  </item>
                 </layout>
                </item>

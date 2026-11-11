@@ -1,0 +1,27 @@
+Gestion Machines - Version 8 : CRUD et contrôle de saisie
+
+Ouvrir CMakeLists.txt dans Qt Creator, choisir Desktop Qt 6.7.3 MinGW 64-bit,
+puis configurer et compiler dans un nouveau dossier de compilation.
+
+AJOUTER
+Cliquer Réinitialiser, saisir le nom, choisir le type, l'état et la date,
+puis cliquer Ajouter. L'identifiant est généré automatiquement.
+Le nom est obligatoire, limité à 200 caractères et doit contenir au moins une lettre. Les chiffres, accents, espaces, apostrophes et traits d'union sont acceptés. Exemples acceptés : Singer 200, Machine 123, 123 Singer. Exemples refusés : 12345, 12-34, nom vide. Le contrôle complet se fait à l'ajout et à la modification.
+
+MODIFIER
+Cliquer sur une ligne de la liste : les données sont chargées dans le formulaire.
+Modifier le nom, le type, l'état, la date ou la photo, puis cliquer Modifier.
+L'identifiant reste identique. Les heures de fonctionnement, pièces produites
+et heures d'arrêt sont conservées lors d'une modification du formulaire.
+Les mêmes contrôles s'appliquent à l'ajout et à la modification.
+Les dates passées restent autorisées pour représenter une maintenance en retard.
+
+SUPPRIMER
+Sélectionner une machine, cliquer Supprimer, puis confirmer la suppression.
+
+CONSULTER
+La liste, la recherche et la pagination assurent la consultation des machines.
+
+BASE DE DONNÉES
+Sans configuration spécifique, SQLite assure la sauvegarde persistante.
+Le mode Oracle QODBC existant est conservé, avec ses paramètres d'environnement.

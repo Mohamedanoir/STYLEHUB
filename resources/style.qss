@@ -30,7 +30,7 @@ QLabel[role="placeholder"] { font-size: 20px; color: #8b857a; }
 
 /* ---- Champs ---- */
 QFrame[role="field"] { background: #ffffff; border: 1px solid #e7dccb; border-radius: 7px; min-height: 36px; }
-QFrame[role="field"] QLineEdit, QFrame[role="field"] QComboBox, QFrame[role="field"] QDateEdit { border: none; background: transparent; padding: 3px 2px; min-height: 26px; }
+QFrame[role="field"] QLineEdit, QFrame[role="field"] QComboBox, QFrame[role="field"] QDateEdit, QFrame[role="field"] QSpinBox, QFrame[role="field"] QDoubleSpinBox { border: none; background: transparent; padding: 3px 2px; min-height: 26px; }
 QFrame[role="field"] QLabel { background: transparent; border: none; }
 QComboBox::drop-down, QDateEdit::drop-down { border: none; width: 22px; }
 QComboBox::down-arrow, QDateEdit::down-arrow { image: url(:/icons/chevron_dark.svg); width: 12px; height: 12px; }
@@ -59,6 +59,12 @@ QToolButton#btnPen { background: #0a2748; border: none; border-radius: 6px; marg
 QPushButton#btnPlus { background: #ecdcc0; border: none; border-radius: 5px; }
 QPushButton#btnChip { background: #f7e6cc; color: #b9781a; border: none; border-radius: 6px; padding: 5px 12px; font-weight: 600; text-align: left; }
 QPushButton#btnChip:hover { background: #f2d9b0; }
+QPushButton#btnAddReading { background: #0a2748; color: #ffffff; border: none; border-radius: 6px; padding: 5px 10px; font-weight: 600; }
+QPushButton#btnAddReading:hover { background: #12386a; }
+QPushButton#btnPlanMaintenance { background: #ffffff; color: #0a2748; border: 1px solid #d7c6a9; border-radius: 6px; padding: 5px 10px; font-weight: 600; }
+QPushButton#btnPlanMaintenance:hover { background: #f7eddd; }
+QPushButton#btnApplyPlan { background: #d9aa59; color: #0a2748; border: none; border-radius: 6px; padding: 5px 10px; font-weight: 700; }
+QPushButton#btnApplyPlan:hover { background: #e6bb72; }
 
 /* ---- Tableau ---- */
 QTableWidget { background: #ffffff; border: 1px solid #eee3d0; border-radius: 6px; selection-background-color: #f3e6cc; selection-color: #23252e; }

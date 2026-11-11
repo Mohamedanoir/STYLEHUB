@@ -27,6 +27,9 @@ struct Machine
     QString etat = Etat::disponible();
     QDate   prochaineMaintenance = QDate::currentDate().addDays(60);
     QString photo;                       // chemin d'une photo (optionnel)
+    double heuresFonctionnement = 0.0;
+    int piecesProduites = 0;
+    double heuresArret = 0.0;
 
     int  joursRestants() const { return QDate::currentDate().daysTo(prochaineMaintenance); }
     bool indisponible()  const { return etat == Etat::indisponible(); }

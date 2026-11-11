@@ -30,10 +30,12 @@ private slots:
     void onAdd();
     void onModify();
     void onDelete();
-    void onView();
     void onReset();
     void onExportPdf();
     void onChoosePhoto();
+    void onAddReading();
+    void onPlanMaintenance();
+    void onApplyOptimizedPlan();
     void onRowSelected();
     void onSearchChanged(const QString &text);
     void updateDetection();
@@ -41,6 +43,7 @@ private slots:
 private:
     // initialisation (les widgets eux-mêmes viennent du .ui)
     void setupIcons();
+    void setupBusinessActions();
     void setupTable();
     void connectSignals();
 
@@ -69,7 +72,6 @@ private:
     QString m_formPhoto;
     int  m_page = 0;
     int  m_alertCount = 0;
-    bool m_onlyAlerts = false;
     bool m_alertsReady = false;
     QSet<QString> m_knownUnavailable;
 };

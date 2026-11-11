@@ -19,12 +19,11 @@ private:
     QString m_unit;
 };
 
-// Métier 1 : barres « Performance par type de machine »
-// (part de machines opérationnelles par type + phrase de synthèse)
+// Métier 1 : score réel par type, calculé à partir des relevés quotidiens.
 class PerformanceBars : public QWidget
 {
 public:
-    struct Entry { QString type; int operationnelles; int total; };   // triées : la meilleure d'abord
+    struct Entry { QString type; int score; int disponibilite; int production; int machines; };
     explicit PerformanceBars(QWidget *parent = nullptr);
     void setData(const QVector<Entry> &entries, const QString &summary);
     QSize minimumSizeHint() const override { return QSize(280, 190); }

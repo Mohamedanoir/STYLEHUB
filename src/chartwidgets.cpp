@@ -111,21 +111,21 @@ void PerformanceBars::paintEvent(QPaintEvent *)
 
     const int n = qMax(5, int(m_entries.size()));
     const qreal rowH = (height() - headH) / qreal(n);
-    const qreal nameW = qMin<qreal>(96, width() * 0.28);
-    const qreal pctW = 50, cntW = 32;
-    const QRectF track(nameW + 6, 0, width() - nameW - pctW - cntW - 14, 12);
+    const qreal nameW = qMin<qreal>(86, width() * 0.30);
+    const qreal pctW = 42;
+    const QRectF track(nameW + 6, 0, width() - nameW - pctW - 18, 10);
 
     for (int i = 0; i < m_entries.size(); ++i) {
         const Entry &e = m_entries[i];
-        const int pct = e.total ? qRound(100.0 * e.operationnelles / e.total) : 0;
+        const int pct = qBound(0, e.score, 100);
         const qreal cy = headH + rowH * i + rowH / 2;
 
-        p.setFont(px(13, i == 0));
+        p.setFont(px(12, i == 0));
         p.setPen(QColor("#23252e"));
-        p.drawText(QRectF(0, cy - 12, nameW, 24), Qt::AlignVCenter | Qt::AlignLeft,
+        p.drawText(QRectF(0, cy - 15, nameW, 20), Qt::AlignVCenter | Qt::AlignLeft,
                    QFontMetrics(p.font()).elidedText(e.type, Qt::ElideRight, int(nameW)));
 
-        QRectF t = track; t.moveCenter(QPointF(track.center().x(), cy));
+        QRectF t = track; t.moveCenter(QPointF(track.center().x(), cy - 2));
         p.setPen(Qt::NoPen);
         p.setBrush(QColor("#eee8dc"));
         p.drawRoundedRect(t, 6, 6);
@@ -135,14 +135,15 @@ void PerformanceBars::paintEvent(QPaintEvent *)
             p.drawRoundedRect(f, 6, 6);
         }
 
-        p.setFont(px(13, true));
+        p.setFont(px(12, true));
         p.setPen(QColor("#23252e"));
-        p.drawText(QRectF(width() - cntW - pctW, cy - 12, pctW, 24), Qt::AlignVCenter | Qt::AlignRight,
+        p.drawText(QRectF(width() - pctW, cy - 15, pctW, 20), Qt::AlignVCenter | Qt::AlignRight,
                    QStringLiteral("%1 %").arg(pct));
-        p.setFont(px(12));
+        p.setFont(px(9));
         p.setPen(QColor("#6b6b6b"));
-        p.drawText(QRectF(width() - cntW, cy - 12, cntW, 24), Qt::AlignVCenter | Qt::AlignRight,
-                   QStringLiteral("%1/%2").arg(e.operationnelles).arg(e.total));
+        p.drawText(QRectF(nameW + 6, cy + 3, width() - nameW - 12, 14), Qt::AlignVCenter | Qt::AlignLeft,
+                   QStringLiteral("Disponibilité %1% · rendement relatif %2% · %3 machine(s)")
+                       .arg(e.disponibilite).arg(e.production).arg(e.machines));
     }
 }
 

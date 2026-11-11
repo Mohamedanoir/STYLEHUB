@@ -17,11 +17,15 @@ add_executable(GestionMachines
     src/sidebarwidget.cpp  src/sidebarwidget.h
     src/detailsdialog.cpp  src/detailsdialog.h  src/detailsdialog.ui
     src/database.cpp       src/database.h
+    src/connection.cpp     src/connection.h
     src/uihelpers.cpp      src/uihelpers.h
     src/chartwidgets.cpp   src/chartwidgets.h
     src/metiers.cpp        src/metiers.h
+    src/recorddialogs.cpp  src/recorddialogs.h
+    src/businessrecords.h
     src/bannerwidget.cpp   src/bannerwidget.h
     src/machine.h
+    src/machinevalidation.h
     resources.qrc
 )
 
