@@ -4,6 +4,7 @@
 #include "statwidgets.h"
 #include "widgets.h"
 #include "modulepage.h"
+#include "src/machinespage.h"
 #include "employepage.h"
 #include "modules/fashionova-v2/clientsv2window.h"
 
@@ -274,17 +275,23 @@ void MainWindow::configurerInterface()
               {"CMD-004", "Yassine Hamdi",  "06/10/2026", "620", "Annulée",  "Costume sur mesure"} },
             ui->pageCommandes));
 
-        remplacer(ui->pageMachines, new ModulePage("Machines",
-            { {"Référence", T::Texte, {}}, {"Nom", T::Texte, {}},
-              {"Type", T::Choix, {"Couture", "Coupe", "Broderie", "Repassage"}},
-              {"Date d'achat", T::Date, {}},
-              {"État", T::Choix, {"Fonctionnelle", "En panne", "En maintenance"}},
-              {"Notes", T::Description, {}} },
-            { {"MCH-01", "Surjeteuse Juki", "Couture",   "12/01/2024", "Fonctionnelle",  "Atelier 1"},
-              {"MCH-02", "Table de coupe",  "Coupe",     "03/03/2023", "Fonctionnelle",  "Atelier 1"},
-              {"MCH-03", "Brodeuse Brother", "Broderie", "21/06/2025", "En maintenance", "Atelier 2"},
-              {"MCH-04", "Fer industriel",  "Repassage", "15/09/2022", "En panne",       "Atelier 2"} },
-            ui->pageMachines));
+        m_pageMachines = new MachinesPage(ui->pageMachines);
+        QLayout *layoutMachines = ui->pageMachines->layout();
+        while (QLayoutItem *item = layoutMachines->takeAt(0)) {
+            delete item->widget();
+            delete item;
+        }
+        layoutMachines->setContentsMargins(0, 0, 0, 0);
+        layoutMachines->addWidget(m_pageMachines);
+        connect(m_pageMachines, &MachinesPage::searchTextChanged, this, [this](const QString &text) {
+            if (m_rechercheGlobale->text() != text) {
+                QSignalBlocker blocker(m_rechercheGlobale);
+                m_rechercheGlobale->setText(text);
+            }
+        });
+        connect(m_rechercheGlobale, &QLineEdit::textChanged,
+                m_pageMachines, &MachinesPage::setSearchText);
+
     }
 
     // ---- Barre du haut
@@ -1160,6 +1167,8 @@ void MainWindow::onBoutonPlus()
 void MainWindow::verifierRetards()
 {
     if (!m_badgeCloche || !m_labelRetard) return;
+    if (m_pageMachines)
+        m_pageMachines->showAlertsMenu(ui->btnCloche);
     const QList<Maquette> retards = Maquette::enRetard(JOURS_MAX_VALIDATION);
     m_badgeCloche->setText(QString::number(retards.size()));
     m_labelRetard->setText(retards.isEmpty() ? ""
@@ -1173,6 +1182,8 @@ void MainWindow::verifierRetards()
 
 void MainWindow::onCloche()
 {
+    if (m_pageMachines)
+        m_pageMachines->showAlertsMenu(ui->btnCloche);
     const QList<Maquette> retards = Maquette::enRetard(JOURS_MAX_VALIDATION);
     if (retards.isEmpty()) {
         QMessageBox::information(this, "Alertes", "Aucune maquette en retard de validation.");

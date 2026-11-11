@@ -27,6 +27,7 @@ class DonutChart;
 class LineChart;
 class BarChart;
 class FashionNovaV2Window;
+class MachinesPage;
 
 namespace Ui { class MainWindow; }
 
@@ -94,6 +95,7 @@ private:
     QStackedWidget *m_pages = nullptr;
     QButtonGroup   *m_navGroupe = nullptr;
     FashionNovaV2Window *m_clientsV2 = nullptr;
+    MachinesPage *m_pageMachines = nullptr;
 
     QLineEdit   *m_rechercheGlobale = nullptr;
     QLabel      *m_badgeCloche = nullptr;

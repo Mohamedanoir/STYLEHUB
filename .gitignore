@@ -12,3 +12,6 @@ imageformats/
 platforms/
 sqldrivers/
 styles/
+build*/
+*.pro.user*
+CMakeLists.txt.user
