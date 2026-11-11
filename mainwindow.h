@@ -26,7 +26,7 @@ class Miniature;
 class DonutChart;
 class LineChart;
 class BarChart;
-class ClientPage;
+class FashionNovaV2Window;
 
 namespace Ui { class MainWindow; }
 
@@ -93,7 +93,7 @@ private:
     QWidget        *m_sidebar = nullptr;
     QStackedWidget *m_pages = nullptr;
     QButtonGroup   *m_navGroupe = nullptr;
-    ClientPage     *m_clientsPage = nullptr;
+    FashionNovaV2Window *m_clientsV2 = nullptr;
 
     QLineEdit   *m_rechercheGlobale = nullptr;
     QLabel      *m_badgeCloche = nullptr;

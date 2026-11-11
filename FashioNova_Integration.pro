@@ -16,7 +16,8 @@ SOURCES += \
     employe.cpp \
     employepage.cpp \
     modules/fashionova-v2/client.cpp \
-    modules/fashionova-v2/clientpage.cpp \
+    modules/fashionova-v2/clientsv2window.cpp \
+    modules/fashionova-v2/statswidgets.cpp \
     logindialog.cpp
 
 HEADERS += \
@@ -30,10 +31,14 @@ HEADERS += \
     employe.h \
     employepage.h \
     modules/fashionova-v2/client.h \
-    modules/fashionova-v2/clientpage.h \
+    modules/fashionova-v2/clientsv2window.h \
+    modules/fashionova-v2/statswidgets.h \
     logindialog.h
 
-RESOURCES += resources.qrc
+RESOURCES += \
+    resources.qrc \
+    modules/fashionova-v2/resources_clientsv2.qrc
 
 FORMS += \
-    mainwindow.ui
+    mainwindow.ui \
+    modules/fashionova-v2/clientsv2window.ui
