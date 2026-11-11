@@ -898,7 +898,6 @@ QWidget *FashionNovaV2Window::takeClientsPage()
 {
     QWidget *page = ui->pageClients;
     ui->stackPages->removeWidget(page);
-    page->setParent(nullptr);
     return page;
 }
 

@@ -259,7 +259,9 @@ void MainWindow::configurerInterface()
             delete item;
         }
         layoutClients->setContentsMargins(0, 0, 0, 0);
-        layoutClients->addWidget(m_clientsV2->takeClientsPage());
+        QWidget *clientsPage = m_clientsV2->takeClientsPage();
+        layoutClients->addWidget(clientsPage);
+        clientsPage->show();
 
         remplacer(ui->pageCommandes, new ModulePage("Commandes",
             { {"ID", T::Texte, {}}, {"Client", T::Texte, {}}, {"Date", T::Date, {}},
