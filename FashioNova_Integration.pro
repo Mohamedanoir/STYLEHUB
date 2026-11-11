@@ -15,6 +15,8 @@ SOURCES += \
     modulepage.cpp \
     employe.cpp \
     employepage.cpp \
+    modules/fashionova-v2/client.cpp \
+    modules/fashionova-v2/clientpage.cpp \
     logindialog.cpp
 
 HEADERS += \
@@ -27,6 +29,8 @@ HEADERS += \
     modulepage.h \
     employe.h \
     employepage.h \
+    modules/fashionova-v2/client.h \
+    modules/fashionova-v2/clientpage.h \
     logindialog.h
 
 RESOURCES += resources.qrc

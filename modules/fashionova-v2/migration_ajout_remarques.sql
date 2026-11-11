@@ -18,6 +18,7 @@ DECLARE
     END;
 BEGIN
     ajouter_colonne('ID_APP', 'VARCHAR2(10)');
+    ajouter_colonne('NOM_CLIENT', 'VARCHAR2(50)');
     ajouter_colonne('ADRESSE', 'VARCHAR2(200)');
     ajouter_colonne('TYPE_CLIENT', 'VARCHAR2(10)');
     ajouter_colonne('DATE_INSCRIPTION', 'DATE');

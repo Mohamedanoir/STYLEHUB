@@ -221,6 +221,7 @@ bool Client::ajouter() const
 
 QVector<Client> Client::lister()
 {
+    g_derniereErreur.clear();
     QVector<Client> liste;
     QSqlQuery query;
     query.prepare("SELECT ID_APP, NOM_CLIENT, PRENOM_CLIENT, TELEPHONE, EMAIL, ADRESSE, TYPE_CLIENT, "

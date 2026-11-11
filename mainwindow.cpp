@@ -5,6 +5,7 @@
 #include "widgets.h"
 #include "modulepage.h"
 #include "employepage.h"
+#include "modules/fashionova-v2/clientpage.h"
 
 #include <QAbstractItemView>
 #include <QApplication>
@@ -221,6 +222,7 @@ void MainWindow::configurerInterface()
     }
     connect(m_navGroupe, &QButtonGroup::idClicked, this, [this](int id) {
         m_pages->setCurrentIndex(id);
+        if (id == 0 && m_clientsPage) m_clientsPage->reload();
         if (id == 1) {                       // on entre dans le module Employés
             ui->employeWidget->loadEmployees();
             ui->employeWidget->refresh();
@@ -248,6 +250,16 @@ void MainWindow::configurerInterface()
             lay->setContentsMargins(0, 0, 0, 0);
             lay->addWidget(page);
         };
+
+        // Le module Clients de fashionova v2 remplace le message provisoire.
+        m_clientsPage = new ClientPage(ui->pageClients);
+        QLayout *layoutClients = ui->pageClients->layout();
+        while (QLayoutItem *item = layoutClients->takeAt(0)) {
+            delete item->widget();
+            delete item;
+        }
+        layoutClients->setContentsMargins(0, 0, 0, 0);
+        layoutClients->addWidget(m_clientsPage);
 
         remplacer(ui->pageCommandes, new ModulePage("Commandes",
             { {"ID", T::Texte, {}}, {"Client", T::Texte, {}}, {"Date", T::Date, {}},

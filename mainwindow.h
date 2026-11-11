@@ -26,6 +26,7 @@ class Miniature;
 class DonutChart;
 class LineChart;
 class BarChart;
+class ClientPage;
 
 namespace Ui { class MainWindow; }
 
@@ -92,6 +93,7 @@ private:
     QWidget        *m_sidebar = nullptr;
     QStackedWidget *m_pages = nullptr;
     QButtonGroup   *m_navGroupe = nullptr;
+    ClientPage     *m_clientsPage = nullptr;
 
     QLineEdit   *m_rechercheGlobale = nullptr;
     QLabel      *m_badgeCloche = nullptr;
