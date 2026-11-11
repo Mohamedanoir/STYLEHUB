@@ -1,4 +1,6 @@
 #include "mainwindow.h"
+#include "connection.h"
+#include <QMessageBox>
 int main(int argc,char*argv[]){
     QApplication a(argc,argv);
     // Forcer le thème clair (ignore le mode sombre de Windows)
@@ -17,4 +19,14 @@ int main(int argc,char*argv[]){
     p.setColor(QPalette::Highlight,QColor("#d9a566"));
     p.setColor(QPalette::HighlightedText,QColor("#1d2a3a"));
     a.setPalette(p);
-    MainWindow w;w.show();return a.exec();}
+    Connection c;
+    if (c.createconnect())
+        QMessageBox::information(nullptr, "Base de données", "Connexion réussie");
+    else
+        QMessageBox::warning(nullptr, "Base de données",
+                             "Connexion à la base Oracle impossible.\nVérifiez le DSN ODBC, l'utilisateur et le mot de passe.");
+
+    MainWindow w;
+    w.show();
+    return a.exec();
+}
