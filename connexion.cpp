@@ -12,7 +12,7 @@ Connexion &Connexion::instance()
     return unique;
 }
 
-bool Connexion::creerConnexion()
+bool Connexion::creerConnexion(const QString &utilisateur, const QString &motDePasse)
 {
     // Déjà ouverte ? (Singleton : on ne crée pas une deuxième connexion)
     if (QSqlDatabase::contains() && QSqlDatabase::database().isOpen())
@@ -22,8 +22,8 @@ bool Connexion::creerConnexion()
                           ? QSqlDatabase::database(QSqlDatabase::defaultConnection, false)
                           : QSqlDatabase::addDatabase("QODBC");
     db.setDatabaseName("Source_Projet2A");        // nom de la source ODBC (64 bits)
-    db.setUserName("fashionova");
-    db.setPassword(qEnvironmentVariable("FASHIONOVA_DB_PASSWORD"));
+    db.setUserName(utilisateur.trimmed());
+    db.setPassword(motDePasse);
 
     if (!db.open()) {
         m_erreur = "Connexion Oracle impossible :\n" + db.lastError().text();

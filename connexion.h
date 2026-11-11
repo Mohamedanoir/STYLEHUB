@@ -13,7 +13,7 @@ class Connexion
 public:
     static Connexion &instance();
 
-    bool creerConnexion();
+    bool creerConnexion(const QString &utilisateur, const QString &motDePasse);
     void fermerConnexion();
     QString derniereErreur() const { return m_erreur; }
 
