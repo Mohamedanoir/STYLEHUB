@@ -1,0 +1,22 @@
+FashionNova - module Clients et schema Oracle
+============================================
+
+Ouvrir HighFashionWorkshop.pro avec Qt Creator.
+Le projet contient actuellement le module Clients ; les autres tables sont creees
+pour preparer l'integration future des autres modules.
+
+Base Oracle
+-----------
+1. Dans Oracle SQL Developer, connecter le schema qui contient CLIENTS.
+2. Si les colonnes attendues par le module Clients manquent, executer
+   migration_ajout_remarques.sql une seule fois.
+3. Executer fashionova_oracle.sql une seule fois pour creer EMPLOYES, MACHINES,
+   COMMANDES, MAQUETTES, ARTICLES, CONTENIR et leurs relations.
+4. Les tables existantes ne sont pas supprimees par ces scripts.
+
+Connexion Qt / ODBC
+-------------------
+Le DSN ODBC utilise par le projet est Source_Projet2A. Le nom d'utilisateur
+peut etre defini dans la variable Windows FASHIONOVA_DB_USER (par defaut: aziz).
+Definir le mot de passe dans FASHIONOVA_DB_PASSWORD avant de lancer l'application.
+Aucun mot de passe n'est stocke dans le depot.
