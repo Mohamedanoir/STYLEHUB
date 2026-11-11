@@ -12,3 +12,5 @@ imageformats/
 platforms/
 sqldrivers/
 styles/
+"api_key.txt" 
+"*api_key*" 

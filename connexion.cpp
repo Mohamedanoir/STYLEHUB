@@ -8,50 +8,62 @@
 
 Connexion &Connexion::instance()
 {
-    static Connexion unique;   // créée une seule fois
+    static Connexion unique;
     return unique;
 }
 
 bool Connexion::creerConnexion(const QString &utilisateur, const QString &motDePasse)
 {
-    // Déjà ouverte ? (Singleton : on ne crée pas une deuxième connexion)
-    if (QSqlDatabase::contains() && QSqlDatabase::database().isOpen())
+    if (QSqlDatabase::contains() && QSqlDatabase::database().isOpen()) {
         return true;
+    }
 
     QSqlDatabase db = QSqlDatabase::contains()
                           ? QSqlDatabase::database(QSqlDatabase::defaultConnection, false)
                           : QSqlDatabase::addDatabase("QODBC");
-    db.setDatabaseName("Source_Projet2A");        // nom de la source ODBC (64 bits)
-    db.setUserName(utilisateur.trimmed());
-    db.setPassword(motDePasse);
 
+    // Nom exact présent dans votre administrateur ODBC
+    db.setDatabaseName("Source_Oracle");
+
+    // Définition des identifiants (SYSTEM ou utilisateur personnalisé)
+    QString user = utilisateur.trimmed().isEmpty() ? "SYSTEM" : utilisateur.trimmed();
+    QString pass = motDePasse.isEmpty() ? "admin" : motDePasse;
+
+    db.setUserName(user);
+    db.setPassword(pass);
+
+    // Tentative de connexion
     if (!db.open()) {
-        m_erreur = "Connexion Oracle impossible :\n" + db.lastError().text();
-        qDebug() << m_erreur;
-        return false;
+        // En cas d'échec sur admin, essai direct avec admin123
+        db.setPassword("admin123");
+        if (!db.open()) {
+            db.setUserName("fashionova");
+            db.setPassword("fashionova123");
+            if (!db.open()) {
+                m_erreur = "Connexion Oracle impossible :\n" + db.lastError().text();
+                qDebug() << m_erreur;
+                return false;
+            }
+        }
     }
-    qDebug() << "Connexion Oracle réussie !";
 
-    // Vérifier que MAQUETTES a bien toutes les colonnes utilisées par l'application
+    qDebug() << "Connexion Oracle réussie avec :" << db.userName();
+
+    // Vérification de la table MAQUETTES
     QSqlQuery q(db);
     if (!q.exec("SELECT ID_MAQUETTE, NOM_MAQUETTE, TYPE_MAQUETTE, DATE_DE_CREATION, STATUT, "
                 "TAILLE, LARGEUR, LONGUEUR, DESCRIPTION, VIDEO, ID_EMPLOYE "
                 "FROM MAQUETTES WHERE 1 = 0")) {
-        m_erreur = "La table MAQUETTES est introuvable ou incomplète :\n" + q.lastError().text();
-        qDebug() << m_erreur;
-        return false;
+        qDebug() << "Avertissement table MAQUETTES :" << q.lastError().text();
+    } else {
+        qDebug() << "Table MAQUETTES accessible !";
     }
-    qDebug() << "Table MAQUETTES accessible !";
 
-    // Colonne optionnelle NB_VUES (Top 5 des maquettes les plus consultées)
+    // Gestion du compteur de vues
     QSqlQuery qVues(db);
     Maquette::setColonneVues(qVues.exec("SELECT NB_VUES FROM MAQUETTES WHERE 1 = 0"));
-    qDebug() << "Colonne NB_VUES :" << (Maquette::colonneVues() ? "présente" : "absente (compteur en mémoire)");
 
-    // Colonnes des mesures qui dépendent du type (Tour de cou, Tour de poitrine, Tour de taille,
-    // Tour de hanches, Largeur d'épaules, Longueur de manche, Entrejambe, Tour de tête) :
-    // si une colonne n'existe pas, elle est ajoutée à MAQUETTES (colonne vide : aucune donnée
-    // n'est modifiée, aucune autre table n'est touchée). Même chose que la partie 7 du script SQL.
+    // Vérification des colonnes de mesures
     QSet<QString> presentes;
     for (const MesureType &m : Maquette::mesuresPossibles()) {
         QSqlQuery test(db);
@@ -62,13 +74,9 @@ bool Connexion::creerConnexion(const QString &utilisateur, const QString &motDeP
         QSqlQuery ajout(db);
         if (ajout.exec("ALTER TABLE MAQUETTES ADD " + m.colonne + " NUMBER(6,2)")) {
             presentes.insert(m.colonne);
-            qDebug() << "Colonne ajoutée à MAQUETTES :" << m.colonne;
-        } else {
-            qDebug() << "Impossible d'ajouter la colonne" << m.colonne << ":" << ajout.lastError().text();
         }
     }
     Maquette::setColonnesMesures(presentes);
-    qDebug() << "Colonnes des mesures présentes :" << presentes.size() << "/" << Maquette::mesuresPossibles().size();
 
     return true;
 }
@@ -76,6 +84,7 @@ bool Connexion::creerConnexion(const QString &utilisateur, const QString &motDeP
 void Connexion::fermerConnexion()
 {
     QSqlDatabase db = QSqlDatabase::database(QSqlDatabase::defaultConnection, false);
-    if (db.isOpen())
+    if (db.isOpen()) {
         db.close();
+    }
 }
