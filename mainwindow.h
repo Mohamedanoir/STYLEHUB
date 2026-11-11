@@ -1,7 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <cstdio>
 #include <QMainWindow>
 #include <QTableWidget>
 #include <QLineEdit>
@@ -19,6 +18,8 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QVariantAnimation>
+#include <QDesktopServices>
+#include <QUrl>
 #include "commande.h"
 #include "AnimatedBotButton.h"
 
@@ -44,68 +45,105 @@ private slots:
     void onBtnAddClicked();
     void onBtnEditClicked();
     void onBtnDeleteClicked();
-    void onSaveOrderForm();
     void onResetOrderForm();
+
+    // Contrôles de saisie en temps réel
+    void onIdTextChanged(const QString &text);
+    void onClientCodeTextChanged(const QString &text);
+    void onClientNameTextChanged(const QString &text);
+    void onAmountTextChanged(const QString &text);
+    void onClientPhoneTextChanged(const QString &text);
+    void onBtnAutoGenerateIdClicked();
+
+    // Actions WhatsApp et SMS
+    void onBtnWhatsAppClicked();
+    void onBtnSmsClicked();
+
+    // Cascades 24 Gouvernorats
+    void onWilayaChanged(const QString &wilaya);
+    void onDelegationChanged(const QString &delegation);
 
     void toggleChatWindow();
     void handleSendChatMessage();
     void onAiResponseReceived(QNetworkReply *reply);
 
-    // Synchronisation Oracle et animations
     void actualiserTableau();
     void onDonutAnimationStep(const QVariant &val);
-
-    // Recalcul automatique du délai estimé
     void recalculerDelaiLivraisonEstime();
 
 private:
     Commande cTmp;
 
-    // Formulaire de commande (côté gauche)
+    // Formulaire de commande
     QFrame *formFrame;
     QLineEdit *formIdEdit;
+    QLabel *idErrorLabel;
     QLineEdit *formClientCodeEdit;
+    QLabel *clientCodeErrorLabel;
     QLineEdit *formClientNameEdit;
-    QLineEdit *formAddressEdit;
+    QLabel *clientNameErrorLabel;
+    QLineEdit *formClientPhoneEdit;
+    QLabel *clientPhoneErrorLabel;
+
+    // Contrôle du montant
+    QLineEdit *formAmountEdit;
+    QLabel *amountErrorLabel;
+
+    // Hiérarchie géographique tunisienne
+    QComboBox *comboWilaya;
+    QComboBox *comboDelegation;
+    QComboBox *comboImada;
+
     QDateEdit *formDateEdit;
     QComboBox *formStatusCombo;
-    QLineEdit *formAmountEdit;
+    QComboBox *formArticleCombo;
+    QComboBox *formPaymentCombo;
     QLabel *formPreviewImage;
     QLabel *smartDeliveryDateLabel;
-    QPushButton *btnAdd; // Devient "💾 Enregistrer" en mode édition
-    bool isEditingMode;
-    int editingRow;
 
-    // Navigation & Table (côté droit)
+    QPushButton *btnAdd;
+    QPushButton *btnEdit;
+    QPushButton *btnDel;
+
+    // Navigation & Table
     QStackedWidget *pageStack;
     QLineEdit *searchEdit;
     QTableWidget *ordersTable;
-    QComboBox *statusCombo;
-    QComboBox *periodCombo;
+    QFrame *tableContainerFrame;
 
-    // Panneau Détails
+    // Panneau Détails repositionné en bas
+    QWidget *detailsPanelContainer;
     QLabel *selectedOrderLabel;
     QLabel *detailProductImage;
+    QLabel *detailProdInfo;
     QLabel *detailClient;
+    QLabel *detailPhone;
     QLabel *detailDate;
     QLabel *detailStatus;
     QLabel *detailAmount;
+    QLabel *detailPayment;
     QLabel *detailAddress;
     QLabel *distanceLabel;
     QLabel *costLabel;
     QLabel *delayLabel;
 
-    // Carte & Donut animé
+    // Boutons d'actions flottants
+    QPushButton *btnWhatsAppFloating;
+    QPushButton *btnSmsFloating;
+    QString currentSelectedPhone;
+
+    // Carte & Statistiques
     QWebEngineView *mapView;
     QLabel *donutLabel;
     QVBoxLayout *legendLayout;
     QVariantAnimation *donutAnim;
+    QLabel *govBarChartLabel; // Label du graphique en barres réelles
     int animCountLivree;
     int animCountEnCours;
     int animCountPrete;
     int animTotalCmd;
 
-    // Labels KPI dynamiques
+    // Labels KPI
     QLabel *kpiTotalVal;
     QLabel *kpiEnAttenteVal;
     QLabel *kpiExpedieesVal;
@@ -117,7 +155,7 @@ private:
     QString selectedClientLat;
     QString selectedClientLon;
 
-    // Chatbot IA (Bouton flottant animé)
+    // Chatbot IA
     AnimatedBotButton *chatFloatingBtn;
     QFrame *chatWindow;
     QWidget *chatMessagesArea;
@@ -128,14 +166,15 @@ private:
     QJsonArray conversationHistory;
     QString getApiKey();
 
-    // Géocodage et calcul multimodal
-    QPair<double, double> geolocaliserVille(const QString &nomVille);
+    void initTunisianLocationData();
+    QPair<double, double> getCoordinatesFromAddress(const QString &wilaya, const QString &delegation, const QString &imada);
     void calculerTempsTrajet(double latDest, double lonDest);
     void rafraichirMarqueursCarte();
     void recalculerStatistiquesEtDonut();
     void dessinerDonut(double progress);
 
-    // Constructeurs d'interface
+    bool validateTunisianPhoneNumber(const QString &cleanNumber, QString &operatorName);
+
     QWidget* makeSidebar();
     QWidget* makeHeader();
     QWidget* makeOrdersAndFormCombinedPanel();
@@ -149,6 +188,7 @@ private:
     void updateDetails(int row);
     void sendMapCommand(const QString &js);
     void setupFloatingChatbot();
+    void setupFloatingActionButtons();
     void addChatMessage(const QString &sender, const QString &text, bool isUser);
     QString processChatbotQuery(const QString &query);
     void initAIAgent();

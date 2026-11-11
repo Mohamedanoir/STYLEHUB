@@ -14,5 +14,6 @@
         <file>images/veste_avant.png</file>
         <file>images/banniere.png</file>
         <file>web/map.html</file>
+        <file>web/tunisia.js</file>
     </qresource>
 </RCC>

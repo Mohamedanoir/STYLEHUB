@@ -1,6 +1,7 @@
 #include "commande.h"
 #include <QSqlError>
 #include <QDebug>
+#include <QSqlQuery>
 
 Commande::Commande() {
     idCommande = "";
@@ -12,10 +13,10 @@ Commande::Commande() {
     article = "";
     taille = "";
     quantite = 1;
-    modePaiement = "";
+    modePaiement = "Carte bancaire";
     adresseLivraison = "";
-    latitude = 0.0;
-    longitude = 0.0;
+    latitude = 36.8065;
+    longitude = 10.1815;
 }
 
 Commande::Commande(QString id, QString codeCli, QString nomCli, QDate dateCmd,
@@ -27,49 +28,48 @@ Commande::Commande(QString id, QString codeCli, QString nomCli, QDate dateCmd,
     quantite(quantite), modePaiement(modePaiement), adresseLivraison(adresse),
     latitude(lat), longitude(lng) {}
 
-// CREATE : Ajouter une commande
+// CREATE : Ajouter une commande conforme au schéma Oracle
 bool Commande::ajouter() {
     QSqlQuery query;
-    query.prepare("INSERT INTO COMMANDES (ID_COMMANDE, CODE_CLIENT, NOM_CLIENT, DATE_COMMANDE, "
-                  "STATUT, MONTANT, ARTICLE, TAILLE, QUANTITE, MODE_PAIEMENT, ADRESSE_LIVRAISON, "
-                  "LATITUDE, LONGITUDE) "
-                  "VALUES (:id, :codeCli, :nomCli, :dateCmd, :statut, :montant, :article, "
-                  ":taille, :quantite, :modePaiement, :adresse, :lat, :lng)");
+    query.prepare("INSERT INTO COMMANDES (ID_COMMANDE, DATE_COMMANDE, DATE_LIVRAISON_ESTIMEE, "
+                  "STATUT, MONTANT_TOTAL, ADRESSE_LIVRAISON, LATITUDE, LONGITUDE, "
+                  "MODE_PAIEMENT, ID_CLIENT) "
+                  "VALUES (:id, :dateCmd, :dateLiv, :statut, :montant, :adresse, :lat, :lng, :modeP, :idCli)");
 
     query.bindValue(":id", idCommande);
-    query.bindValue(":codeCli", codeClient);
-    query.bindValue(":nomCli", nomClient);
     query.bindValue(":dateCmd", dateCommande);
+    query.bindValue(":dateLiv", dateCommande.addDays(2));
     query.bindValue(":statut", statut);
     query.bindValue(":montant", montant);
-    query.bindValue(":article", article);
-    query.bindValue(":taille", taille);
-    query.bindValue(":quantite", quantite);
-    query.bindValue(":modePaiement", modePaiement);
     query.bindValue(":adresse", adresseLivraison);
     query.bindValue(":lat", latitude);
     query.bindValue(":lng", longitude);
+    query.bindValue(":modeP", modePaiement.isEmpty() ? "Carte bancaire" : modePaiement);
+    query.bindValue(":idCli", codeClient);
 
     if (!query.exec()) {
-        qDebug() << "Erreur ajout commande :" << query.lastError().text();
+        qDebug() << "Erreur ajout commande Oracle :" << query.lastError().text();
         return false;
     }
     return true;
 }
 
-// READ : Afficher toutes les commandes dans un modèle tabulaire
+// READ : Modèle tabulaire pour les exports ou vues directes
 QSqlQueryModel* Commande::afficher() {
     QSqlQueryModel *model = new QSqlQueryModel();
-    model->setQuery("SELECT ID_COMMANDE, CODE_CLIENT, NOM_CLIENT, "
-                    "TO_CHAR(DATE_COMMANDE, 'DD/MM/YYYY') AS DATE_COMMANDE, "
-                    "STATUT, MONTANT FROM COMMANDES ORDER BY ID_COMMANDE ASC");
+    model->setQuery("SELECT c.ID_COMMANDE, c.ID_CLIENT, cl.NOM_CLIENT || ' ' || cl.PRENOM_CLIENT AS CLIENT, "
+                    "c.ADRESSE_LIVRAISON, TO_CHAR(c.DATE_COMMANDE, 'DD/MM/YYYY') AS DATE_COMMANDE, "
+                    "c.STATUT, c.MONTANT_TOTAL "
+                    "FROM COMMANDES c JOIN CLIENTS cl ON c.ID_CLIENT = cl.ID_CLIENT "
+                    "ORDER BY c.ID_COMMANDE ASC");
 
-    model->setHeaderData(0, Qt::Horizontal, QObject::tr("ID Commande"));
+    model->setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
     model->setHeaderData(1, Qt::Horizontal, QObject::tr("Code Client"));
     model->setHeaderData(2, Qt::Horizontal, QObject::tr("Nom Client"));
-    model->setHeaderData(3, Qt::Horizontal, QObject::tr("Date"));
-    model->setHeaderData(4, Qt::Horizontal, QObject::tr("Statut"));
-    model->setHeaderData(5, Qt::Horizontal, QObject::tr("Montant (TND)"));
+    model->setHeaderData(3, Qt::Horizontal, QObject::tr("Adresse"));
+    model->setHeaderData(4, Qt::Horizontal, QObject::tr("Date"));
+    model->setHeaderData(5, Qt::Horizontal, QObject::tr("Statut"));
+    model->setHeaderData(6, Qt::Horizontal, QObject::tr("Montant"));
 
     return model;
 }
@@ -90,22 +90,17 @@ bool Commande::supprimer(QString id) {
 // UPDATE : Mettre à jour une commande existante
 bool Commande::modifier() {
     QSqlQuery query;
-    query.prepare("UPDATE COMMANDES SET CODE_CLIENT = :codeCli, NOM_CLIENT = :nomCli, "
-                  "DATE_COMMANDE = :dateCmd, STATUT = :statut, MONTANT = :montant, "
-                  "ARTICLE = :article, TAILLE = :taille, QUANTITE = :quantite, "
+    query.prepare("UPDATE COMMANDES SET ID_CLIENT = :idCli, "
+                  "DATE_COMMANDE = :dateCmd, STATUT = :statut, MONTANT_TOTAL = :montant, "
                   "MODE_PAIEMENT = :modePaiement, ADRESSE_LIVRAISON = :adresse, "
                   "LATITUDE = :lat, LONGITUDE = :lng "
                   "WHERE ID_COMMANDE = :id");
 
     query.bindValue(":id", idCommande);
-    query.bindValue(":codeCli", codeClient);
-    query.bindValue(":nomCli", nomClient);
+    query.bindValue(":idCli", codeClient);
     query.bindValue(":dateCmd", dateCommande);
     query.bindValue(":statut", statut);
     query.bindValue(":montant", montant);
-    query.bindValue(":article", article);
-    query.bindValue(":taille", taille);
-    query.bindValue(":quantite", quantite);
     query.bindValue(":modePaiement", modePaiement);
     query.bindValue(":adresse", adresseLivraison);
     query.bindValue(":lat", latitude);

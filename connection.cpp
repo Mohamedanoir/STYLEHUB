@@ -20,8 +20,8 @@ Connection& Connection::createInstance() {
 // Établissement de la connexion ODBC vers Oracle
 bool Connection::createConnection() {
     db.setDatabaseName("Source_Oracle");
-    db.setUserName("system");            // Utilisateur Oracle
-    db.setPassword("admin");             // Mot de passe mis à jour
+    db.setUserName("fashionova_user");    // Le nouvel utilisateur dédié propre
+    db.setPassword("admin123");           // Le mot de passe défini pour cet utilisateur
 
     if (db.open()) {
         qDebug() << "Connexion établie avec succès !";
