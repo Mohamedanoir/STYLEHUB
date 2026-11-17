@@ -20,10 +20,22 @@
         <file>images/chemise_homme_validee.gif</file>
         <file>images/chapeau_avant.png</file>
         <file>images/chapeau_validee.gif</file>
+
         <!-- Assets Employés -->
         <file>assets/sidebar.png</file>
         <file>assets/banner.png</file>
         <file>assets/employee_photo.png</file>
         <file>assets/stats_reference.png</file>
+
+        <!-- Images & Ressources Web Commandes -->
+        <file>images/image_tete.png</file>
+        <file>images/prod_veste.png</file>
+        <file>images/prod_sac.png</file>
+        <file>images/prod_lunette.png</file>
+        <file>images/prod_bijoux.png</file>
+        <file>images/prod_chaussure.png</file>
+        <file>images/prod_montre.png</file>
+        <file>web/map.html</file>
+        <file>web/tunisia.js</file>
     </qresource>
 </RCC>

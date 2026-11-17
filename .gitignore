@@ -1,13 +1,13 @@
+# Fichiers sensibles
+api_key.txt
+
+# Dossiers de compilation et IDE Qt Creator
 build/
-build_llvm/
 .qtcreator/
-*.user
-.env
+*.pro.user*
+
+# Fichiers binaires et objets compilés
 *.exe
-*.dll
+*.obj
 *.o
-generic/
-imageformats/
-platforms/
-sqldrivers/
-styles/
+*.dll

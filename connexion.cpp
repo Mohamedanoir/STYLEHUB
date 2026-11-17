@@ -21,9 +21,9 @@ bool Connexion::creerConnexion()
     QSqlDatabase db = QSqlDatabase::contains()
                           ? QSqlDatabase::database(QSqlDatabase::defaultConnection, false)
                           : QSqlDatabase::addDatabase("QODBC");
-    db.setDatabaseName("Source_Projet2A");        // nom de la source ODBC (64 bits)
-    db.setUserName("fashionova");
-    db.setPassword(qEnvironmentVariable("FASHIONOVA_DB_PASSWORD"));
+    db.setDatabaseName("Source_Oracle");        // nom de ta source ODBC locale
+    db.setUserName("fashionova_user");          // ton utilisateur Oracle dédié
+    db.setPassword("admin123");                 // ton mot de passe Oracle
 
     if (!db.open()) {
         m_erreur = "Connexion Oracle impossible :\n" + db.lastError().text();
@@ -48,10 +48,7 @@ bool Connexion::creerConnexion()
     Maquette::setColonneVues(qVues.exec("SELECT NB_VUES FROM MAQUETTES WHERE 1 = 0"));
     qDebug() << "Colonne NB_VUES :" << (Maquette::colonneVues() ? "présente" : "absente (compteur en mémoire)");
 
-    // Colonnes des mesures qui dépendent du type (Tour de cou, Tour de poitrine, Tour de taille,
-    // Tour de hanches, Largeur d'épaules, Longueur de manche, Entrejambe, Tour de tête) :
-    // si une colonne n'existe pas, elle est ajoutée à MAQUETTES (colonne vide : aucune donnée
-    // n'est modifiée, aucune autre table n'est touchée). Même chose que la partie 7 du script SQL.
+    // Colonnes des mesures qui dépendent du type
     QSet<QString> presentes;
     for (const MesureType &m : Maquette::mesuresPossibles()) {
         QSqlQuery test(db);
