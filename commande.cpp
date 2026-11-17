@@ -78,7 +78,7 @@ QSqlQueryModel* Commande::afficher() {
 bool Commande::supprimer(QString id) {
     QSqlQuery query;
     query.prepare("DELETE FROM COMMANDES WHERE ID_COMMANDE = :id");
-    query.bindValue(":id", id);
+    query.bindValue(":id", id);//da5el l id ill 7achtek tfas5ou
 
     if (!query.exec()) {
         qDebug() << "Erreur suppression commande :" << query.lastError().text();

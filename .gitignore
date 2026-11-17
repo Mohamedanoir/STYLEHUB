@@ -1,7 +1,13 @@
-api_key.txt 
-api_key.txt 
-build/ 
-api_key.txt 
-*.exe 
-*.obj 
+# Fichiers sensibles
 api_key.txt
+
+# Dossiers de compilation et IDE Qt Creator
+build/
+.qtcreator/
+*.pro.user*
+
+# Fichiers binaires et objets compilés
+*.exe
+*.obj
+*.o
+*.dll
