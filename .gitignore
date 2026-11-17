@@ -1,0 +1,11 @@
+build/
+build_llvm/
+.qtcreator/
+*.exe
+*.dll
+*.o
+generic/
+imageformats/
+platforms/
+sqldrivers/
+styles/
