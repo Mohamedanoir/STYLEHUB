@@ -1,0 +1,4 @@
+build/
+.qtcreator/
+*.pro.user
+api_key.txt
