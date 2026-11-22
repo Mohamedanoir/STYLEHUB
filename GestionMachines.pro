@@ -1,45 +1,21 @@
-QT       += core gui widgets sql svg
-CONFIG   += c++17
-TARGET    = GestionMachines
-TEMPLATE  = app
+QT += core gui widgets sql svg
+CONFIG += c++17
+TEMPLATE = app
+TARGET = GestionMachines
 
-msvc: QMAKE_CXXFLAGS += /utf-8
-
-INCLUDEPATH += src
+INCLUDEPATH += src forms
 
 SOURCES += \
-    src/main.cpp \
-    src/mainwindow.cpp \
-    src/machinespage.cpp \
-    src/sidebarwidget.cpp \
-    src/detailsdialog.cpp \
-    src/database.cpp \
-    src/connection.cpp \
-    src/uihelpers.cpp \
-    src/chartwidgets.cpp \
-    src/metiers.cpp \
-    src/recorddialogs.cpp \
-    src/bannerwidget.cpp
+    src/machine.cpp \
+    src/connection.cpp
 
 HEADERS += \
-    src/machinevalidation.h \
     src/machine.h \
-    src/mainwindow.h \
-    src/machinespage.h \
-    src/sidebarwidget.h \
-    src/detailsdialog.h \
-    src/database.h \
-    src/connection.h \
-    src/uihelpers.h \
-    src/chartwidgets.h \
-    src/metiers.h \
-    src/recorddialogs.h \
-    src/businessrecords.h \
-    src/bannerwidget.h
+    src/connection.h
 
 FORMS += \
-    src/mainwindow.ui \
-    src/machinespage.ui \
-    src/detailsdialog.ui
+    src/machine.ui \
+    forms/mainwindow.ui \
+    forms/detailsdialog.ui
 
 RESOURCES += resources.qrc

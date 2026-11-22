@@ -499,12 +499,12 @@ Module à intégrer dans l'application FashioNova.</string>
   <customwidget>
    <class>MachinesPage</class>
    <extends>QWidget</extends>
-   <header>machinespage.h</header>
+   <header>machine.h</header>
   </customwidget>
   <customwidget>
    <class>SidebarWidget</class>
    <extends>QFrame</extends>
-   <header>sidebarwidget.h</header>
+   <header>machine.h</header>
   </customwidget>
  </customwidgets>
  <resources />

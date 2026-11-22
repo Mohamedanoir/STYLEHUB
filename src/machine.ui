@@ -1453,22 +1453,22 @@ maintenance</string>
   <customwidget>
    <class>BannerWidget</class>
    <extends>QWidget</extends>
-   <header>bannerwidget.h</header>
+   <header>machine.h</header>
   </customwidget>
   <customwidget>
    <class>DonutChart</class>
    <extends>QWidget</extends>
-   <header>chartwidgets.h</header>
+   <header>machine.h</header>
   </customwidget>
   <customwidget>
    <class>PerformanceBars</class>
    <extends>QWidget</extends>
-   <header>chartwidgets.h</header>
+   <header>machine.h</header>
   </customwidget>
   <customwidget>
    <class>PlanningList</class>
    <extends>QWidget</extends>
-   <header>chartwidgets.h</header>
+   <header>machine.h</header>
   </customwidget>
  </customwidgets>
  <resources />

@@ -1,0 +1,16 @@
+-- À exécuter dans le schéma Oracle qui contient la table MACHINES.
+-- À utiliser seulement si les trois colonnes de suivi n'existent pas encore.
+
+ALTER TABLE MACHINES ADD (
+    HEURES_FONCTIONNEMENT NUMBER(10,2) DEFAULT 0 NOT NULL,
+    PIECES_PRODUITES      NUMBER(10)   DEFAULT 0 NOT NULL,
+    HEURES_ARRET          NUMBER(10,2) DEFAULT 0 NOT NULL
+);
+
+-- Structure minimale requise par le CRUD du projet :
+-- ID_MACHINE NUMBER(10) PRIMARY KEY
+-- NOM_MACHINE VARCHAR2(200) NOT NULL
+-- TYPE_MACHINE VARCHAR2(60) NOT NULL
+-- ETAT VARCHAR2(30) NOT NULL
+-- DATE_PROCHAINE_MAINTENANCE DATE NOT NULL
+-- HEURES_FONCTIONNEMENT, PIECES_PRODUITES et HEURES_ARRET (ci-dessus)

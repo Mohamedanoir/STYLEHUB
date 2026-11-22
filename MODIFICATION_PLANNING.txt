@@ -1,0 +1,8 @@
+Ouvrir GestionMachines.pro dans Qt Creator.
+
+Un bouton « Appliquer le planning » est ajouté à droite du titre des statistiques.
+La performance et les propositions de dates sont calculées automatiquement.
+Le bouton demande confirmation avant d’enregistrer le planning dans la base.
+Les erreurs de base sont affichées ; les dates sont rechargées après enregistrement.
+Le dossier source original n’a pas été modifié.
+La connexion Oracle et ses tables doivent être configurées pour enregistrer.
