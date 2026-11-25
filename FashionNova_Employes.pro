@@ -1,4 +1,4 @@
-QT += widgets sql
+QT += widgets sql pdf
 
 CONFIG += c++17
 TEMPLATE = app
@@ -8,13 +8,15 @@ SOURCES += \
     src/main.cpp \
     src/connexion.cpp \
     src/employe.cpp \
-    src/mainwindow.cpp \
-    src/logindialog.cpp
+    src/logindialog.cpp \
+    src/mainwindow.cpp
 
 HEADERS += \
     src/connexion.h \
     src/employe.h \
-    src/mainwindow.h \
-    src/logindialog.h
+    src/logindialog.h \
+    src/mainwindow.h
+
+FORMS += src/logindialog.ui
 
 RESOURCES += resources.qrc

@@ -1,15 +1,26 @@
 #pragma once
+
 #include <QDialog>
-class QLineEdit;
-class LoginDialog : public QDialog {
+#include "employe.h"
+
+namespace Ui { class LoginDialog; }
+
+class LoginDialog : public QDialog
+{
     Q_OBJECT
 public:
-    explicit LoginDialog(QWidget *parent=nullptr);
-    QString id() const;
-    QString password() const;
+    explicit LoginDialog(QWidget *parent = nullptr);
+    ~LoginDialog() override;
+
+    const Employe &employeConnecte() const;
+    void reinitialiser();
+
 private slots:
-    void validate();
+    void tenterConnexion();
+    void motDePasseOublie();
+
 private:
-    QLineEdit *m_id;
-    QLineEdit *m_password;
+    void ajouterIcone(QWidget *champ, const QString &image, bool aGauche);
+    Ui::LoginDialog *ui;
+    Employe m_employe;
 };

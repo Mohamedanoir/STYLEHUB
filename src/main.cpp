@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QFontDatabase>
 #include <QInputDialog>
 #include <QLineEdit>
 #include <QMessageBox>
@@ -9,6 +10,17 @@
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
     a.setStyle("Fusion");
+
+    const QStringList fontFiles = {
+        QStringLiteral(":/fonts/Jost-Regular.ttf"),
+        QStringLiteral(":/fonts/Jost-Medium.ttf"),
+        QStringLiteral(":/fonts/Jost-SemiBold.ttf"),
+        QStringLiteral(":/fonts/CormorantGaramond-Medium.ttf"),
+        QStringLiteral(":/fonts/CormorantGaramond-MediumItalic.ttf")
+    };
+    for (const QString &fontFile : fontFiles)
+        QFontDatabase::addApplicationFont(fontFile);
+
 
     bool ok = false;
     const QString utilisateur = QInputDialog::getText(
@@ -33,6 +45,16 @@ int main(int argc, char *argv[]) {
     }
 
     QString schemaError;
+    if (!Employe::preparerSchemaPresence(&schemaError)) {
+        QMessageBox::critical(nullptr, "Mise a jour de la presence impossible",
+                              "Le compte Oracle doit posseder EMPLOYES pour ajouter la colonne de presence.\n\n" +
+                              schemaError +
+                              "\n\nVous pouvez aussi executer sql/03_add_employee_presence.sql avec le proprietaire de la table.");
+        connexion.fermer();
+        return 1;
+    }
+
+    schemaError.clear();
     Employe::afficher(&schemaError);
     if (!schemaError.isEmpty()) {
         QMessageBox::critical(nullptr, "Schéma EMPLOYES introuvable",
@@ -45,8 +67,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    // MainWindow schedules the employee login before showing the dashboard.
     MainWindow w;
-    w.show();
     const int codeRetour = a.exec();
     connexion.fermer();
     return codeRetour;

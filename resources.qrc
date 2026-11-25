@@ -4,5 +4,40 @@
 <file>assets/banner.png</file>
 <file>assets/employee_photo.png</file>
 <file>assets/stats_reference.png</file>
+<file alias="menu/style.qss">assets/menu/style.qss</file>
+<file alias="login/images/logo_ombre.png">assets/login/images/logo_ombre.png</file>
+<file alias="login/images/utilisateur.png">assets/login/images/utilisateur.png</file>
+<file alias="login/images/cadenas.png">assets/login/images/cadenas.png</file>
+<file alias="login/images/oeil.png">assets/login/images/oeil.png</file>
+<file alias="login/images/cercle.png">assets/login/images/cercle.png</file>
+<file alias="login/images/fleche.png">assets/login/images/fleche.png</file>
+<file alias="login/fonts/Jost-Regular.ttf">assets/login/fonts/Jost-Regular.ttf</file>
+<file alias="login/fonts/Jost-Medium.ttf">assets/login/fonts/Jost-Medium.ttf</file>
+<file alias="login/fonts/Jost-SemiBold.ttf">assets/login/fonts/Jost-SemiBold.ttf</file>
+<file alias="login/fonts/CormorantGaramond-Medium.ttf">assets/login/fonts/CormorantGaramond-Medium.ttf</file>
+<file alias="login/fonts/CormorantGaramond-MediumItalic.ttf">assets/login/fonts/CormorantGaramond-MediumItalic.ttf</file>
+<file alias="menu/images/articles.png">assets/menu/images/articles.png</file>
+<file alias="menu/images/clients.png">assets/menu/images/clients.png</file>
+<file alias="menu/images/commandes.png">assets/menu/images/commandes.png</file>
+<file alias="menu/images/employes.png">assets/menu/images/employes.png</file>
+<file alias="menu/images/fleche.png">assets/menu/images/fleche.png</file>
+<file alias="menu/images/machines.png">assets/menu/images/machines.png</file>
+<file alias="menu/images/maquettes.png">assets/menu/images/maquettes.png</file>
+<file alias="images/logo.png">assets/login/images/logo.png</file>
+<file alias="images/logo_ombre.png">assets/login/images/logo_ombre.png</file>
+<file alias="images/cercle.png">assets/login/images/cercle.png</file>
+<file alias="images/utilisateur.png">assets/login/images/utilisateur.png</file>
+<file alias="images/cadenas.png">assets/login/images/cadenas.png</file>
+<file alias="images/oeil.png">assets/login/images/oeil.png</file>
+<file alias="images/groupe.png">assets/login/images/groupe.png</file>
+<file alias="images/chevron.png">assets/login/images/chevron.png</file>
+<file alias="images/coche.png">assets/login/images/coche.png</file>
+<file alias="images/fleche.png">assets/login/images/fleche.png</file>
+<file alias="fonts/Jost-Regular.ttf">assets/login/fonts/Jost-Regular.ttf</file>
+<file alias="fonts/Jost-Medium.ttf">assets/login/fonts/Jost-Medium.ttf</file>
+<file alias="fonts/Jost-SemiBold.ttf">assets/login/fonts/Jost-SemiBold.ttf</file>
+<file alias="fonts/CormorantGaramond-Medium.ttf">assets/login/fonts/CormorantGaramond-Medium.ttf</file>
+<file alias="fonts/CormorantGaramond-MediumItalic.ttf">assets/login/fonts/CormorantGaramond-MediumItalic.ttf</file>
+<file alias="style.qss">assets/login/style.qss</file>
 </qresource>
 </RCC>

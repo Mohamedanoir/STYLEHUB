@@ -13,7 +13,7 @@ La classe Employe contient les requêtes préparées du CRUD. La vue appelle ces
 méthodes et ne contient pas de requêtes SQL. Les opérations utilisent des
 paramètres positionnels (? / addBindValue) pour séparer les valeurs du SQL.
 
-La répartition par poste (employés présents), la présence actuelle et les salaires affichent leurs pourcentages; les montants sont calculés depuis les employés chargés d'Oracle. Les statistiques sont recalculées après chaque opération CRUD et changement de présence. Les statistiques de répartition et de salaires sont calculées depuis les
+Les statistiques de répartition et de salaires sont calculées depuis les
 employés chargés d'Oracle. Le graphique Présents/Absents reflète la session
 ouverte dans l'application. Le modèle EMPLOYES fourni ne conserve pas
 l'historique de présence par jour; aucun graphique historique n'est donc
@@ -44,10 +44,4 @@ leurs contraintes. Ne l'exécutez que dans un schéma vide ou après sauvegarde.
 Les champs de présence et la date de dernière connexion de l'interface restent
 temporaires en mémoire : ils ne font pas partie de la table EMPLOYES du modèle
 fourni.
-
-
-
-Suppression des employés
-------------------------
-L'application vérifie d'abord si une maquette référence l'employé. Si oui, Oracle protège la clé étrangère et la suppression est refusée avec le nombre de maquettes à réaffecter. Aucune maquette n'est supprimée automatiquement.
 

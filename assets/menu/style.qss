@@ -1,0 +1,54 @@
+/* =========================================================
+   Menu - couleurs de l'image de référence :
+   fond crème, titre et bordures dorés #C9A227,
+   boutons bleu marine #1F3A5F, cercles #2C5282.
+   Chargé dans main.cpp à l'exécution : le .ui reste sans couleurs.
+   ========================================================= */
+
+QMainWindow, QWidget#centralwidget {
+    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                                      stop:0 #F6EDE0, stop:0.5 #F1E3CC, stop:1 #F6EDE0);
+}
+QWidget#colonneMenu {
+    background: transparent;
+}
+
+/* ---------- Titre ---------- */
+QLabel#menuTitre {
+    color: #C9A227;
+    font-family: "Georgia", "Times New Roman", serif;
+    font-size: 80px;
+    font-weight: bold;
+    font-style: italic;
+    background: transparent;
+}
+QFrame#decoLigneGauche, QFrame#decoLigneDroite {
+    background-color: #C9A227;
+    border: none;
+}
+QLabel#decoEtoile {
+    color: #C9A227;
+    font-size: 30px;
+    background: transparent;
+}
+
+/* ---------- Boutons des modules (l'un sous l'autre) ---------- */
+QPushButton#btnClients, QPushButton#btnEmployes, QPushButton#btnCommandes,
+QPushButton#btnMaquettes, QPushButton#btnArticles, QPushButton#btnMachines {
+    background-color: #1F3A5F;
+    color: #FFFFFF;
+    font-size: 26px;
+    font-weight: bold;
+    text-align: left;
+    border: 2px solid #C9A227;
+    border-radius: 20px;
+    padding-left: 12px;
+}
+QPushButton#btnClients:hover, QPushButton#btnEmployes:hover, QPushButton#btnCommandes:hover,
+QPushButton#btnMaquettes:hover, QPushButton#btnArticles:hover, QPushButton#btnMachines:hover {
+    background-color: #274A78;
+}
+QPushButton#btnClients:pressed, QPushButton#btnEmployes:pressed, QPushButton#btnCommandes:pressed,
+QPushButton#btnMaquettes:pressed, QPushButton#btnArticles:pressed, QPushButton#btnMachines:pressed {
+    background-color: #16304F;
+}

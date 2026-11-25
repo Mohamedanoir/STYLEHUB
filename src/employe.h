@@ -1,6 +1,5 @@
 #pragma once
 
-#include <QDateTime>
 #include <QList>
 #include <QString>
 
@@ -13,15 +12,19 @@ public:
     QString poste;
     double salaire = 0.0;
     QString motDePasse;
-
-    // Attendance fields are UI-only; the approved EMPLOYES table has no such columns.
-    bool present = false;
-    QDateTime derniereConnexion;
+    QString etatPresence = QStringLiteral("ABSENT");
 
     QString code() const;
+
+    static bool authentifier(const QString &identifiant,
+                             const QString &motDePasse,
+                             Employe *employe,
+                             QString *erreur = nullptr);
+    static bool preparerSchemaPresence(QString *erreur = nullptr);
 
     bool ajouter(QString *erreur = nullptr);
     bool modifier(QString *erreur = nullptr) const;
     static bool supprimer(qlonglong id, QString *erreur = nullptr);
+    static bool changerPresence(qlonglong id, bool present, QString *erreur = nullptr);
     static QList<Employe> afficher(QString *erreur = nullptr);
 };
