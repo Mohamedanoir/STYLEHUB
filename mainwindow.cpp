@@ -2,8 +2,6 @@
 #include "ui_mainwindow.h"
 #include "widgets.h"
 #include "modulepage.h"
-#include "STYLEHUB/modules/fashionova-v2/clientsv2window.h"
-#include "STYLEHUB/src/employepage.h"
 #include <QPdfWriter>
 #include <QTextDocument>
 #include <QPageSize>
@@ -152,16 +150,8 @@ MainWindow::MainWindow():ui(new Ui::MainWindow){
             auto*bn=new BannerWidget;bn->setTexts(mods[i].t,mods[i].s,mods[i].q);
             auto*body=new QFrame;body->setObjectName("body");   // même fond que les Articles
             auto*bl=new QVBoxLayout(body);
-            if (i == 0) {
-                auto *clientsWindow = new FashionNovaV2Window(this);
-                auto *clientsPage = clientsWindow->takeClientsPage();
-                bl->addWidget(clientsPage);
-            } else if (i == 1) {
-                bl->addWidget(new EmployePage(body));
-            } else {
-                const QString tables[] = {"CLIENTS", "EMPLOYES", "COMMANDES", "MAQUETTES", "MACHINES"};
-                bl->addWidget(new ModulePage(tables[i], bt[i]->text(), body));
-            }
+            const QString tables[] = {"CLIENTS", "EMPLOYES", "COMMANDES", "MAQUETTES", "MACHINES"};
+            bl->addWidget(new ModulePage(tables[i], bt[i]->text(), body));
             lay->addWidget(bn);lay->addWidget(body,1);
         }
         stack->addWidget(page);         // index du stack == index du bouton
