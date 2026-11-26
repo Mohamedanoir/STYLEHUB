@@ -52,6 +52,57 @@ static QString pickImage(QWidget*parent){
     auto*it=lst->currentItem();return it?it->data(Qt::UserRole).toString():QString();
 }
 
+// Propose a small, budget-limited set of in-stock materials for a clothing style.
+// The current schema has no occasion/season fields, so this first version uses
+// keywords in the existing name/category/description fields and demand score.
+static void showSelectionAssistant(QWidget *parent, const QVector<Article> &articles){
+    QDialog d(parent);d.setWindowTitle("Assistant de sélection");d.resize(720,500);
+    auto *root=new QVBoxLayout(&d);
+    auto *intro=new QLabel("Choisissez un style et un budget. L'assistant propose des matières disponibles selon leur description et leur demande.");
+    intro->setWordWrap(true);root->addWidget(intro);
+    auto *filters=new QFormLayout;
+    auto *style=new QComboBox;style->addItems({"Soirée", "Quotidien", "Sport", "Été"});
+    auto *budget=new QDoubleSpinBox;budget->setRange(1,1000000);budget->setDecimals(3);budget->setValue(100);budget->setSuffix(" DT");
+    auto *suggest=new QPushButton("Générer une sélection");
+    filters->addRow("Style de collection",style);filters->addRow("Budget maximal",budget);root->addLayout(filters);root->addWidget(suggest);
+    auto *table=new QTableWidget(0,4);table->setHorizontalHeaderLabels({"Article", "Catégorie", "Prix unitaire", "Quantité"});
+    table->horizontalHeader()->setSectionResizeMode(0,QHeaderView::Stretch);table->setEditTriggers(QAbstractItemView::NoEditTriggers);root->addWidget(table,1);
+    auto *total=new QLabel("Total : 0,000 DT");total->setAlignment(Qt::AlignRight);root->addWidget(total);
+    QObject::connect(suggest,&QPushButton::clicked,&d,[&,table,total,style,budget]{
+        QStringList keywords;
+        const QString selected=style->currentText();
+        if(selected=="Soirée")keywords={"soie","satin","dentelle","velours","soir"};
+        else if(selected=="Quotidien")keywords={"coton","polyester","fil","bouton","fermeture"};
+        else if(selected=="Sport")keywords={"polyester","fil","accessoire"};
+        else keywords={"soie","coton","lin","léger","ruban"};
+        QVector<Article> candidates;
+        for(const auto &a:articles){
+            if(a.getQte()<=0||a.getSt().compare("Disponible",Qt::CaseInsensitive)!=0||a.getPrix()<=0)continue;
+            const QString text=(a.getNom()+" "+a.getCat()+" "+a.getDesc()).toLower();
+            bool matches=false;for(const auto &word:keywords)if(text.contains(word)){matches=true;break;}
+            if(matches)candidates<<a;
+        }
+        std::sort(candidates.begin(),candidates.end(),[](const Article &a,const Article &b){
+            const double sa=(a.getDem()+1.0)/(a.getPrix()+1.0),sb=(b.getDem()+1.0)/(b.getPrix()+1.0);
+            return sa==sb?a.getDem()>b.getDem():sa>sb;
+        });
+        table->setRowCount(0);double sum=0;int count=0;
+        for(const auto &a:candidates){
+            if(count>=6)break;
+            const int quantity=qMin(a.getQte(),qMax(1,int((budget->value()-sum)/a.getPrix())));
+            if(quantity<1||sum+quantity*a.getPrix()>budget->value()+0.0001)continue;
+            const int row=table->rowCount();table->insertRow(row);
+            table->setItem(row,0,new QTableWidgetItem(a.getNom()));table->setItem(row,1,new QTableWidgetItem(a.getCat()));
+            table->setItem(row,2,new QTableWidgetItem(QString::number(a.getPrix(),'f',3)+" DT"));table->setItem(row,3,new QTableWidgetItem(QString::number(quantity)));
+            sum+=quantity*a.getPrix();++count;
+        }
+        total->setText(QString("Total : %1 DT").arg(sum,0,'f',3));
+        if(count==0)QMessageBox::information(&d,"Aucune suggestion","Aucun article disponible ne correspond à ce style et à ce budget.");
+    });
+    auto *close=new QPushButton("Fermer");root->addWidget(close,0,Qt::AlignRight);QObject::connect(close,&QPushButton::clicked,&d,&QDialog::accept);
+    d.exec();
+}
+
 MainWindow::MainWindow():ui(new Ui::MainWindow){
     ui->setupUi(this);   // toute l'interface vient de mainwindow.ui
 
@@ -134,6 +185,7 @@ MainWindow::MainWindow():ui(new Ui::MainWindow){
     connect(ui->btnDel,&QPushButton::clicked,this,&MainWindow::onDel);
     connect(ui->btnReset,&QPushButton::clicked,this,&MainWindow::reset);
     connect(ui->btnPdf,&QPushButton::clicked,this,&MainWindow::exportPdf);
+    connect(ui->btnRecommend,&QPushButton::clicked,this,[this]{showSelectionAssistant(this,A);});
     connect(ui->search,&QLineEdit::textChanged,this,&MainWindow::refresh);
     connect(ui->cSort,QOverload<int>::of(&QComboBox::currentIndexChanged),this,&MainWindow::refresh);
     connect(ui->gSearch,&QLineEdit::textChanged,ui->search,&QLineEdit::setText);
